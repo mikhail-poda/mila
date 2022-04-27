@@ -57,6 +57,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    return _mainView(context);
+  }
+
+  Widget _mainView(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -116,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ButtonBar(alignment: MainAxisAlignment.center, children: <Widget>[
         ToggleSwitch(
           totalSwitches: 3,
-          labels: const ['He', 'Eng', 'Both'],
+          labels: const ['He', 'Eng', 'View'],
           onToggle: (index) => _switchDisplayOrder(index),
           initialLabelIndex: _model.displayOrder.index,
         ),

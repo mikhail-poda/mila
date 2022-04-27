@@ -13,13 +13,19 @@ class ViewModel {
 
   bool showNikud = false;
   bool _isComplete = true;
-  DisplayOrder displayOrder = DisplayOrder.he;
+  DisplayOrder _displayOrder = DisplayOrder.he;
 
   final _ws = ' '.runes.first;
   final _tav = 'ת'.runes.first;
   final _aleph = 'א'.runes.first;
 
-  get isComplete => _isComplete;
+  bool get isComplete => _isComplete;
+
+  DisplayOrder get displayOrder=> _displayOrder;
+
+  set displayOrder(DisplayOrder value){
+    _displayOrder=value;
+  }
 
   String get statistics {
     if (_model == null) return "";
@@ -36,14 +42,27 @@ class ViewModel {
   }
 
   ViewModel(String fileName, void Function() nextItem) {
-    loadAsync(r'C:\Users\mikha\Downloads\lesson 3.tsv', 0)
-        .toList()
-        .then((value) => init(value, nextItem));
+    var separator = Platform.pathSeparator;
+    var envVars = Platform.environment;
+    var home = envVars['UserProfile'];
+
+    var path = home! + separator + "mila";
+    var fpath = path + separator + "example.txt";
+    var dir = Directory(path);
+
+    if (!dir.existsSync()) {
+      dir.createSync();
+    }
+
+    var file = File(fpath);
+    if (!file.existsSync()) {}
+
+    loadAsync(fpath).toList().then((value) => init(value, nextItem));
   }
 
   void init(List<List<String>> value, void Function() nextItem) {
     var items = value.map((e) => Item(e)).toList();
-    var settings = DataModelSettings(4, 8, 3);
+    var settings = DataModelSettings(4, 10, 3);
     _model = DataModel(items, settings);
     nextItem();
   }
@@ -59,7 +78,7 @@ class ViewModel {
   // hebrew side
   String get heSide {
     if (_current == null) return "... L O A D I N G ...";
-    if (!_isComplete && displayOrder == DisplayOrder.eng) return "";
+    if (!_isComplete && _displayOrder == DisplayOrder.eng) return "";
 
     var str = _current!.firstString;
     if (!showNikud) str = haserNikud(str);
@@ -70,7 +89,7 @@ class ViewModel {
   // english side
   String get engSide {
     if (_current == null) return "";
-    if (!_isComplete && displayOrder == DisplayOrder.he) return "";
+    if (!_isComplete && _displayOrder == DisplayOrder.he) return "";
 
     return _current!.secondString;
   }
@@ -105,11 +124,11 @@ class ViewModel {
       _model!.setLevel(_current!, level);
     }
 
-    _isComplete = displayOrder == DisplayOrder.both;
+    _isComplete = _displayOrder == DisplayOrder.both;
     _current = _model!.nextGuess(_current);
   }
 
-  Stream<List<String>> loadAsync(String fileName, int skipCol) async* {
+  Stream<List<String>> loadAsync(String fileName) async* {
     var lsp = const LineSplitter();
     final lines =
         File(fileName).openRead().transform(utf8.decoder).transform(lsp);
@@ -119,7 +138,7 @@ class ViewModel {
       if (cell.length < 2) continue;
       if (cell[1].isEmpty) continue;
 
-      yield cell.skip(skipCol).toList();
+      yield cell;
     }
   }
 }
