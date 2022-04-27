@@ -44,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _nextGuess(int level) {
-    setState(() => _model.nextGuess(level));
+    setState(() => _model.nextItem(level));
   }
 
   void _switchNikud(int? nikud) {

@@ -1,20 +1,52 @@
 import 'dart:collection';
-import 'Item.dart';
 import 'dart:math';
 
-class DataModel with IterableMixin<Item> {
-  final List<Item> _items;
-  final _random = Random();
-  final DataModelSettings _settings;
+import 'Item.dart';
 
-  DataModel(this._items, this._settings);
+abstract class AbstractDataModel with IterableMixin<Item> {
+  final List<Item> _items;
+
+  AbstractDataModel(this._items);
 
   Item operator [](int index) => _items[index];
 
   @override
   Iterator<Item> get iterator => _items.iterator;
 
-  Item? nextGuess(Item? current) {
+  void setLevel(Item item, int level);
+
+  Item? nextItem(Item? current);
+}
+
+class SequentialDataModel extends AbstractDataModel {
+  int _index = 0;
+
+  SequentialDataModel(List<Item> items) : super(items);
+
+  void reset() => _index = 0;
+
+  @override
+  Item? nextItem(Item? current) {
+    var ind = _index++;
+    return _items[ind % _items.length];
+  }
+
+  @override
+  void setLevel(Item item, int level) {
+    item.level = level;
+  }
+}
+
+class RandomDataModel extends AbstractDataModel {
+  final _random = Random();
+  late DataModelSettings _settings;
+
+  RandomDataModel(List<Item> items, DataModelSettings settings) : super(items) {
+    _settings = settings;
+  }
+
+  @override
+  Item? nextItem(Item? current) {
     var count = _settings.levelsNo + _settings.goodRepetitionsNo;
     var items = _items
         .where((item) =>
@@ -24,8 +56,8 @@ class DataModel with IterableMixin<Item> {
     if (items.isEmpty) return null;
 
     // try with an existing item
-    for (int i = 0; i < count; i++) {
-      Item? next = getRandomItem(items, i, _settings.maxLevelCapacity);
+    for (int level = 0; level < count; level++) {
+      Item? next = getRandomItem(items, level, _settings.maxLevelCapacity);
       if (next != null) return next;
     }
 
@@ -38,12 +70,13 @@ class DataModel with IterableMixin<Item> {
     if (items.isEmpty) return null;
 
     var size = items.length;
-    var maxi = max(size, maxLevelCapacity);
+    var maxi = maxLevelCapacity == 0 ? size : maxLevelCapacity;
     var ind = _random.nextInt(maxi);
     var next = ind < size ? items[ind] : null;
     return next;
   }
 
+  @override
   void setLevel(Item item, int level) {
     // for all but the last level
     var progressLevel = _settings.levelsNo - 1;

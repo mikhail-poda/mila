@@ -5,11 +5,14 @@ import 'dart:io';
 import 'DataModel.dart';
 import 'Item.dart';
 
-enum DisplayOrder { he, eng, both }
+enum DisplayOrder { he, eng, view }
 
 class ViewModel {
   Item? _current;
-  DataModel? _model;
+  AbstractDataModel? _model;
+
+  RandomDataModel? _rand;
+  SequentialDataModel? _seq;
 
   bool showNikud = false;
   bool _isComplete = true;
@@ -21,10 +24,20 @@ class ViewModel {
 
   bool get isComplete => _isComplete;
 
-  DisplayOrder get displayOrder=> _displayOrder;
+  DisplayOrder get displayOrder => _displayOrder;
 
-  set displayOrder(DisplayOrder value){
-    _displayOrder=value;
+  set displayOrder(DisplayOrder value) {
+    _displayOrder = value;
+
+    if (_displayOrder == DisplayOrder.view) {
+      _model = _seq;
+      _current = null;
+
+      _seq!.reset();
+      nextItem(0);
+    } else {
+      _model = _rand;
+    }
   }
 
   String get statistics {
@@ -63,7 +76,11 @@ class ViewModel {
   void init(List<List<String>> value, void Function() nextItem) {
     var items = value.map((e) => Item(e)).toList();
     var settings = DataModelSettings(4, 10, 3);
-    _model = DataModel(items, settings);
+
+    _seq = SequentialDataModel(items);
+    _rand = RandomDataModel(items, settings);
+    _model = _rand;
+
     nextItem();
   }
 
@@ -118,14 +135,14 @@ class ViewModel {
     _isComplete = true;
   }
 
-  void nextGuess(int level) {
+  void nextItem(int level) {
     if (_model == null) return;
     if (_current != null) {
       _model!.setLevel(_current!, level);
     }
 
-    _isComplete = _displayOrder == DisplayOrder.both;
-    _current = _model!.nextGuess(_current);
+    _isComplete = _displayOrder == DisplayOrder.view;
+    _current = _model!.nextItem(_current);
   }
 
   Stream<List<String>> loadAsync(String fileName) async* {
