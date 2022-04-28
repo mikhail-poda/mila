@@ -77,6 +77,8 @@ class ViewModel {
     var items = value.map((e) => Item(e)).toList();
     var settings = DataModelSettings(4, 10, 3);
 
+    Item.addSynonyms(items);
+
     _seq = SequentialDataModel(items);
     _rand = RandomDataModel(items, settings);
     _model = _rand;
