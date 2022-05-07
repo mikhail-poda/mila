@@ -6,22 +6,22 @@ class Item {
 
   Item(this._row);
 
-  String get firstString {
+  String get he0 {
     return _row![0];
   }
 
-  String get secondString {
+  String get eng0 {
     return _row![1];
   }
 
-  String get firstList {
+  String get he1 {
     if (_row!.length < 3) return "";
     var cell = _row![2].split(' / ');
 
     return cell.join("\n");
   }
 
-  set firstList(String str) {
+  set he1(String str) {
     if (_row!.length < 3) {
       _row!.add(str);
     } else {
@@ -29,14 +29,14 @@ class Item {
     }
   }
 
-  String get secondList {
+  String get eng1 {
     if (_row!.length < 4) return "";
     var cell = _row![3].split(' / ');
 
     return cell.join("\n");
   }
 
-  set secondList(String str) {
+  set eng1(String str) {
     if (_row!.length < 4) {
       _row!.add(str);
     } else {
@@ -44,12 +44,12 @@ class Item {
     }
   }
 
-  String get firstText {
+  String get he2 {
     if (_row!.length < 5) return "";
     return _row![4];
   }
 
-  String get secondText {
+  String get eng2 {
     if (_row!.length < 6) return "";
     return _row![5];
   }
@@ -59,7 +59,7 @@ class Item {
 
     // make a set of items for each word
     for (final item in items) {
-      final cell = item.secondString
+      final cell = item.eng0
           .replaceAll(";", ",")
           .split(",")
           .map((s) => s.trim())
@@ -96,8 +96,8 @@ class Item {
       for (final other in iset!) {
         if (item == other) continue;
 
-        item.firstList += (' / ' + other.firstString);
-        item.secondList += (' / ' + other.secondString);
+        item.he1 += (' / ' + other.he0);
+        item.eng1 += (' / ' + other.eng0);
       }
     }
   }

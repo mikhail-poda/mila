@@ -1,0 +1,1 @@
+const titleString = 'Hebrew Vocabulary Trainer';
