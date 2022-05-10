@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
+import 'DataModel.dart';
 import 'Providers.dart';
 import 'SourcesModel.dart';
 import 'SourcesView.dart';
@@ -105,18 +106,25 @@ class VocabView extends ConsumerWidget {
         (model.permanentDisplay == PermanentDisplay.eng
             ? Text(model.eng0,
                 textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
-            : Text(model.he0,
+            : Text(
+                model.he0,
                 textScaleFactor: 2,
                 style: const TextStyle(fontWeight: FontWeight.bold),
-                textDirection: TextDirection.rtl)),
+                textDirection: TextDirection.rtl,
+                overflow: TextOverflow.clip,
+              )),
         const Text("_________________________________"),
         (model.permanentDisplay == PermanentDisplay.eng
             ? Text(model.he0,
                 textScaleFactor: 2,
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 textDirection: TextDirection.rtl)
-            : Text(model.eng0,
-                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))),
+            : Text(
+                model.eng0,
+                textScaleFactor: 2,
+                style: const TextStyle(fontWeight: FontWeight.w100),
+                overflow: TextOverflow.clip,
+              )),
         const Text(""),
         const Text(""),
         Row(
@@ -125,16 +133,33 @@ class VocabView extends ConsumerWidget {
               ? [
                   Text(model.he1, textScaleFactor: 2, textDirection: TextDirection.rtl),
                   const Text("   "),
-                  Text(model.eng1,
-                      textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
+                  Text(
+                    model.eng1,
+                    textScaleFactor: 2,
+                    style: const TextStyle(fontWeight: FontWeight.w100),
+                    overflow: TextOverflow.clip,
+                  )
                 ]
               : [
-                  Text(model.he1, textScaleFactor: 2, textDirection: TextDirection.rtl),
+                  Text(
+                    model.he1,
+                    textScaleFactor: 2,
+                    textDirection: TextDirection.rtl,
+                    overflow: TextOverflow.clip,
+                  ),
                 ],
         ),
         const Text(""),
-        Text(model.he2, textScaleFactor: 2, textDirection: TextDirection.rtl),
-        Text(model.eng2, textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
+        Text(
+          model.he2,
+          textScaleFactor: 2,
+          textDirection: TextDirection.rtl,
+          overflow: TextOverflow.clip,
+        ),
+        Text(model.eng2,
+            textScaleFactor: 2,
+            style: const TextStyle(fontWeight: FontWeight.w100),
+            overflow: TextOverflow.clip),
       ],
     );
   }
@@ -153,26 +178,32 @@ class VocabView extends ConsumerWidget {
             ]
           : <Widget>[
               FloatingActionButton(
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.white,
                 heroTag: 2,
+                onPressed: () => model.nextItem(DataModelSettings.undoneLevel),
+                child: const Text("Hide", style: TextStyle(color: Colors.grey)),
+              ),
+              FloatingActionButton(
+                backgroundColor: Colors.red,
+                heroTag: 3,
                 onPressed: () => model.nextItem(0),
                 child: const Text("Again"),
               ),
               FloatingActionButton(
                 backgroundColor: Colors.orange,
-                heroTag: 3,
+                heroTag: 4,
                 onPressed: () => model.nextItem(1),
                 child: const Text("Hard"),
               ),
               FloatingActionButton(
                 backgroundColor: Colors.lightBlueAccent,
-                heroTag: 4,
+                heroTag: 5,
                 onPressed: () => model.nextItem(2),
                 child: const Text("Good"),
               ),
               FloatingActionButton(
                 backgroundColor: Colors.green,
-                heroTag: 5,
+                heroTag: 6,
                 onPressed: () => model.nextItem(3),
                 child: const Text("Easy"),
               ),

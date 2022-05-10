@@ -35,12 +35,12 @@ class VocabModel extends ChangeNotifier {
     _sourceName = p.basename(fileName);
 
     var items = value.map((e) => Item(e)).toList();
-    var settings = DataModelSettings(4, 16, 4);
+    var settings = DataModelSettings(4, 16, 7);
 
     serializer.synch(items);
     Item.addSynonyms(items);
 
-    _seq = SequentialDataModel(items);
+    _seq = SequentialDataModel(items, settings);
     _rand = RandomDataModel(items, settings);
     _model = _rand;
     _serializer = serializer;
@@ -58,9 +58,10 @@ class VocabModel extends ChangeNotifier {
     var total = _model.length;
     var done = _model.where((element) => element.level == DataModelSettings.doneLevel).length;
     var undone = _model.where((element) => element.level == DataModelSettings.undoneLevel).length;
-    var processed = total - (done + undone);
+    var longMem = _model.where((element) => element.level > DataModelSettings.doneLevel).length;
+    var current = total - (done + undone + longMem);
 
-    return "$total = $undone + $processed + $done";
+    return "$total = $undone + $current + $longMem + $done";
   }
 
   String get he0 {

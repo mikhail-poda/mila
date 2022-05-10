@@ -20,8 +20,11 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
 class SequentialDataModel extends AbstractDataModel {
   int _index = 0;
+  late DataModelSettings _settings;
 
-  SequentialDataModel(List<Item> items) : super(items);
+  SequentialDataModel(List<Item> items, DataModelSettings settings) : super(items) {
+    _settings = settings;
+  }
 
   void reset() => _index = 0;
 
@@ -33,7 +36,13 @@ class SequentialDataModel extends AbstractDataModel {
 
   @override
   void setLevel(Item item, int level) {
-    item.level = level;
+    // set new level if still learning, if already good then do nothing
+    if (level < _settings.levelsNo - 1) {
+      item.level = level;
+    } else if (item.level < _settings.levelsNo) {
+      int delta0 = _getDayNo();
+      item.level = DaysLevel(delta0, 1).pack();
+    }
   }
 }
 
@@ -84,13 +93,6 @@ class RandomDataModel extends AbstractDataModel {
     return next;
   }
 
-  int _getDayNo() {
-    var now = DateTime.now();
-    var ref = DateTime(2022);
-    var delta0 = now.difference(ref).inDays;
-    return delta0;
-  }
-
   Item? _getRandomItem(List<Item> items, int maxLevelCapacity) {
     if (items.isEmpty) return null;
     var size = items.length;
@@ -111,7 +113,9 @@ class RandomDataModel extends AbstractDataModel {
 
     // for the last level
     var isTuple = item.level > DataModelSettings.doneLevel;
-    var count = !isTuple ? 0 : (DaysLevel.unpack(item.level).level + 1);
+    var count = isTuple ? DaysLevel.unpack(item.level).level : 0;
+
+    count++;
 
     if (count > _settings.goodRepetitionsNo) {
       item.level = DataModelSettings.doneLevel;
@@ -120,6 +124,13 @@ class RandomDataModel extends AbstractDataModel {
       item.level = DaysLevel(delta0, count).pack();
     }
   }
+}
+
+int _getDayNo() {
+  var now = DateTime.now();
+  var ref = DateTime(2022);
+  var delta0 = now.difference(ref).inDays;
+  return delta0;
 }
 
 class DataModelSettings {
