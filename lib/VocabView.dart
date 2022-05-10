@@ -31,34 +31,80 @@ class VocabView extends ConsumerWidget {
                   style: const TextStyle(color: Colors.red),
                 ),
             data: (_) {
-              return _buildScaffold(ref);
+              return _buildScaffold(context, ref);
             }));
   }
 
-  Scaffold _buildScaffold(WidgetRef ref) {
+  Scaffold _buildScaffold(BuildContext context, WidgetRef ref) {
     var model = ref.watch(vocabProvider);
     model.start();
 
     return Scaffold(
-        appBar: AppBar(title: const Text(titleString)),
+        appBar: AppBar(title: const Text(titleString), actions: <Widget>[
+          Padding(
+              padding: const EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                onTap: () => _settings(context, model),
+                child: const Icon(
+                  Icons.settings,
+                  size: 26.0,
+                ),
+              )),
+        ]),
         body: _body(ref),
         bottomNavigationBar: _buttons(ref));
+  }
+
+  void _settings(BuildContext context, VocabModel model) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Display Order:",
+                          textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
+                      ToggleSwitch(
+                        totalSwitches: 3,
+                        labels: const ['He', 'Eng', 'View'],
+                        onToggle: (index) => model.setDisplay(index!),
+                        initialLabelIndex: model.permanentDisplay.index,
+                      ),
+                      const Text(""),
+                      const Text("Show Nikud:",
+                          textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
+                      ToggleSwitch(
+                        fontSize: 20,
+                        totalSwitches: 2,
+                        labels: const ['א', 'אֲ'],
+                        onToggle: (index) => model.setShowNikud(index!),
+                        initialLabelIndex: model.showNikud ? 1 : 0,
+                      ),
+                    ],
+                  )));
+        });
   }
 
   Column _body(WidgetRef ref) {
     var model = ref.watch(vocabProvider);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
+        Text(model.sourceName,
+            textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
         Text(model.statistics,
-            textScaleFactor: 2,
-            style: const TextStyle(fontWeight: FontWeight.w100)),
+            textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
         const Text(""),
         const Text(""),
         (model.permanentDisplay == PermanentDisplay.eng
             ? Text(model.eng0,
-                textScaleFactor: 2,
-                style: const TextStyle(fontWeight: FontWeight.w100))
+                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
             : Text(model.he0,
                 textScaleFactor: 2,
                 style: const TextStyle(fontWeight: FontWeight.bold),
@@ -70,61 +116,42 @@ class VocabView extends ConsumerWidget {
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 textDirection: TextDirection.rtl)
             : Text(model.eng0,
-                textScaleFactor: 2,
-                style: const TextStyle(fontWeight: FontWeight.w100))),
+                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))),
         const Text(""),
         const Text(""),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-                child: Text(model.he1,
-                    textScaleFactor: 2, textDirection: TextDirection.rtl)),
-            const Text("   "),
-            Expanded(
-                child: Text(model.eng1,
-                    textScaleFactor: 2,
-                    style: const TextStyle(fontWeight: FontWeight.w100)))
-          ],
+          children: model.hasEng1
+              ? [
+                  Text(model.he1, textScaleFactor: 2, textDirection: TextDirection.rtl),
+                  const Text("   "),
+                  Text(model.eng1,
+                      textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
+                ]
+              : [
+                  Text(model.he1, textScaleFactor: 2, textDirection: TextDirection.rtl),
+                ],
         ),
         const Text(""),
-        const Text(""),
         Text(model.he2, textScaleFactor: 2, textDirection: TextDirection.rtl),
-        Text(model.eng2,
-            textScaleFactor: 2,
-            style: const TextStyle(fontWeight: FontWeight.w100)),
+        Text(model.eng2, textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
       ],
     );
   }
 
-  ButtonBar _buttons(WidgetRef ref) {
+  Widget _buttons(WidgetRef ref) {
     var model = ref.watch(vocabProvider);
-    return ButtonBar(alignment: MainAxisAlignment.center, children: <Widget>[
-      ToggleSwitch(
-        totalSwitches: 3,
-        labels: const ['He', 'Eng', 'View'],
-        onToggle: (index) => model.setDisplayOrder(index!),
-        initialLabelIndex: model.permanentDisplay.index,
-      ),
-      ToggleSwitch(
-        fontSize: 20,
-        totalSwitches: 2,
-        labels: const ['א', 'אֲ'],
-        onToggle: (index) => model.setShowNikud(index!),
-        initialLabelIndex: model.showNikud ? 1 : 0,
-      ),
-      IndexedStack(
-        index: model.isComplete ? 1 : 0,
-        children: [
-          ButtonBar(children: <Widget>[
-            FloatingActionButton(
-              heroTag: 1,
-              onPressed: () => model.showComplete(),
-              child: const Text("Show"),
-            ),
-          ]),
-          ButtonBar(
-            children: <Widget>[
+    return ButtonBar(
+      alignment: MainAxisAlignment.center,
+      children: !model.isComplete
+          ? <Widget>[
+              FloatingActionButton.extended(
+                heroTag: 1,
+                onPressed: () => model.showComplete(),
+                label: const Text("           Show           "),
+              )
+            ]
+          : <Widget>[
               FloatingActionButton(
                 backgroundColor: Colors.red,
                 heroTag: 2,
@@ -150,9 +177,6 @@ class VocabView extends ConsumerWidget {
                 child: const Text("Easy"),
               ),
             ],
-          )
-        ],
-      ),
-    ]);
+    );
   }
 }

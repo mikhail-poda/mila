@@ -24,7 +24,7 @@ class DirectoryModel {
     var isEmpty = await dir.list().isEmpty;
     if (isEmpty) {
       var text = await rootBundle.loadString('assets/example.txt');
-      var file = File(p.join(path, "example.txt"));
+      var file = File(p.join(path, "1. first words.txt"));
       file.writeAsString(text);
     }
 
@@ -36,7 +36,7 @@ class FileModel {
   static Future<VocabModel> load(String fileName) async {
     var lines = await _loadAsync(fileName).toList();
     var serializer = await Serializer.load(fileName);
-    return VocabModel(lines, serializer);
+    return VocabModel(fileName, lines, serializer);
   }
 }
 
@@ -45,7 +45,7 @@ typedef Kvp = Tuple2<String, int>;
 class Serializer {
   static Future<Serializer> load(String fileName) async {
     var dir = p.dirname(fileName);
-    var file = p.join(dir, "vocabulary.txt");
+    var file = p.join(dir, "0. vocabulary.txt");
     var lines = await _loadAsync(file).toList();
 
     return Serializer(lines, file);

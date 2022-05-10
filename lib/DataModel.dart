@@ -47,28 +47,52 @@ class RandomDataModel extends AbstractDataModel {
 
   @override
   Item? nextItem(Item? current) {
-    var count = _settings.levelsNo + _settings.goodRepetitionsNo;
     var items = _items
-        .where((item) =>
-            item.level != DataModelSettings.doneLevel && item != current)
+        .where((item) => item.level != DataModelSettings.doneLevel && item != current)
         .toList();
+
+    Item? next;
+    List<Item> filt;
 
     if (items.isEmpty) return null;
 
+    // try with an existing item for long term memory
+    int delta0 = _getDayNo();
+    filt = items
+        .where((item) => item.level > DataModelSettings.doneLevel)
+        .where((item) => DaysLevel.unpack(item.level).daysNo < delta0)
+        .toList();
+    next = _getRandomItem(filt, 0);
+    if (next != null) return next;
+
     // try with an existing item
-    for (int level = 0; level < count; level++) {
-      Item? next = getRandomItem(items, level, _settings.maxLevelCapacity);
+    for (int level = 0; level < _settings.levelsNo; level++) {
+      filt = items.where((item) => item.level == level).toList();
+      next = _getRandomItem(filt, _settings.maxLevelCapacity);
       if (next != null) return next;
     }
 
     // try with a new item
-    return getRandomItem(items, DataModelSettings.undoneLevel, 0);
+    filt = items.where((item) => item.level == DataModelSettings.undoneLevel).toList();
+    next = _getRandomItem(filt, 0);
+    if (next != null) return next;
+
+    // if existing items are sparse and there is no new items
+    filt = items.where((item) => item.level < DataModelSettings.doneLevel).toList();
+    next = _getRandomItem(items, 0);
+
+    return next;
   }
 
-  Item? getRandomItem(List<Item> items_, int level, int maxLevelCapacity) {
-    var items = items_.where((item) => item.level == level).toList();
-    if (items.isEmpty) return null;
+  int _getDayNo() {
+    var now = DateTime.now();
+    var ref = DateTime(2022);
+    var delta0 = now.difference(ref).inDays;
+    return delta0;
+  }
 
+  Item? _getRandomItem(List<Item> items, int maxLevelCapacity) {
+    if (items.isEmpty) return null;
     var size = items.length;
     var maxi = maxLevelCapacity == 0 ? size : maxLevelCapacity;
     var ind = _random.nextInt(maxi);
@@ -80,16 +104,20 @@ class RandomDataModel extends AbstractDataModel {
   void setLevel(Item item, int level) {
     // for all but the last level
     var progressLevel = _settings.levelsNo - 1;
-    if (item.level < progressLevel || level < progressLevel) {
+    if (level < progressLevel) {
       item.level = level;
       return;
     }
 
     // for the last level
-    item.level++;
-    var doneLevel = _settings.levelsNo + _settings.goodRepetitionsNo - 1;
-    if (item.level >= doneLevel) {
+    var isTuple = item.level > DataModelSettings.doneLevel;
+    var count = !isTuple ? 0 : (DaysLevel.unpack(item.level).level + 1);
+
+    if (count > _settings.goodRepetitionsNo) {
       item.level = DataModelSettings.doneLevel;
+    } else {
+      int delta0 = _getDayNo();
+      item.level = DaysLevel(delta0, count).pack();
     }
   }
 }
@@ -102,6 +130,21 @@ class DataModelSettings {
   static int doneLevel = 100;
   static int undoneLevel = -1;
 
-  DataModelSettings(
-      this.levelsNo, this.maxLevelCapacity, this.goodRepetitionsNo);
+  DataModelSettings(this.levelsNo, this.maxLevelCapacity, this.goodRepetitionsNo);
+}
+
+class DaysLevel {
+  late int level;
+  late int daysNo;
+
+  DaysLevel(this.daysNo, this.level);
+
+  DaysLevel.unpack(int value) {
+    daysNo = value & 0xffff;
+    level = (value >> 16) & 0xffff;
+  }
+
+  int pack() {
+    return daysNo | (level << 16);
+  }
 }

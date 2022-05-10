@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 
 import 'DataModel.dart';
 import 'Item.dart';
@@ -23,13 +24,18 @@ class VocabModel extends ChangeNotifier {
   PermanentDisplay get permanentDisplay => _permanentDisplay;
   PermanentDisplay _permanentDisplay = PermanentDisplay.he;
 
+  String get sourceName => _sourceName;
+  late String _sourceName;
+
   final _ws = ' '.runes.first;
   final _tav = 'ת'.runes.first;
   final _aleph = 'א'.runes.first;
 
-  VocabModel(List<List<String>> value, Serializer serializer) {
+  VocabModel(String fileName, List<List<String>> value, Serializer serializer) {
+    _sourceName = p.basename(fileName);
+
     var items = value.map((e) => Item(e)).toList();
-    var settings = DataModelSettings(4, 10, 3);
+    var settings = DataModelSettings(4, 16, 4);
 
     serializer.synch(items);
     Item.addSynonyms(items);
@@ -79,6 +85,10 @@ class VocabModel extends ChangeNotifier {
     return _current!.he1;
   }
 
+  bool get hasEng1 {
+    return eng1.isNotEmpty;
+  }
+
   String get eng1 {
     if (_current == null || !_isComplete) return "";
     return _current!.eng1;
@@ -118,7 +128,7 @@ class VocabModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setDisplayOrder(int value) {
+  void setDisplay(int value) {
     _permanentDisplay = PermanentDisplay.values[value];
 
     if (_permanentDisplay == PermanentDisplay.view) {
