@@ -68,19 +68,27 @@ class VocabView extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const Text("Iteration Order:",
+                          textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
+                      ToggleSwitch(
+                        totalSwitches: 2,
+                        labels: const ['Sequential', 'Random'],
+                        onToggle: (index) => model.setIterationMode(index!),
+                        initialLabelIndex: model.iterationMode.index,
+                      ),
+                      const Text(""),
                       const Text("Display Order:",
                           textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
                       ToggleSwitch(
-                        totalSwitches: 3,
-                        labels: const ['He', 'Eng', 'View'],
-                        onToggle: (index) => model.setDisplay(index!),
-                        initialLabelIndex: model.permanentDisplay.index,
+                        totalSwitches: 4,
+                        labels: const ['He', 'Eng', 'Random', 'Both'],
+                        onToggle: (index) => model.setDisplayMode(index!),
+                        initialLabelIndex: model.displayMode.index,
                       ),
                       const Text(""),
                       const Text("Show Nikud:",
                           textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
                       ToggleSwitch(
-                        fontSize: 20,
                         totalSwitches: 2,
                         labels: const ['א', 'אֲ'],
                         onToggle: (index) => model.setShowNikud(index!),
@@ -103,7 +111,7 @@ class VocabView extends ConsumerWidget {
             textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
         const Text(""),
         const Text(""),
-        (model.permanentDisplay == PermanentDisplay.eng
+        (model.guessMode == GuessMode.eng
             ? Text(model.eng0,
                 textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
             : Text(
@@ -113,8 +121,8 @@ class VocabView extends ConsumerWidget {
                 textDirection: TextDirection.rtl,
                 overflow: TextOverflow.clip,
               )),
-        const Text("_________________________________"),
-        (model.permanentDisplay == PermanentDisplay.eng
+        const Text("_______________________________________"),
+        (model.guessMode == GuessMode.eng
             ? Text(model.he0,
                 textScaleFactor: 2,
                 style: const TextStyle(fontWeight: FontWeight.bold),

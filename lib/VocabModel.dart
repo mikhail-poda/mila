@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
@@ -5,24 +7,35 @@ import 'DataModel.dart';
 import 'Item.dart';
 import 'SourcesModel.dart';
 
-enum PermanentDisplay { he, eng, view }
+enum GuessMode { he, eng }
+enum IterationMode { sequential, random }
+enum DisplayMode { he, eng, random, complete }
 
 class VocabModel extends ChangeNotifier {
   Item? _current;
+  final _random = Random();
 
-  late RandomDataModel _rand;
   late AbstractDataModel _model;
-  late SequentialDataModel _seq;
   late Serializer _serializer;
 
   bool get showNikud => _showNikud;
   bool _showNikud = false;
 
+  // transaction
   bool get isComplete => _isComplete;
   bool _isComplete = false;
 
-  PermanentDisplay get permanentDisplay => _permanentDisplay;
-  PermanentDisplay _permanentDisplay = PermanentDisplay.he;
+  // transaction
+  GuessMode get guessMode => _guessMode;
+  GuessMode _guessMode = GuessMode.he;
+
+  // settings
+  DisplayMode get displayMode => _displayMode;
+  DisplayMode _displayMode = DisplayMode.he;
+
+  // settings
+  IterationMode get iterationMode => _iterationMode;
+  IterationMode _iterationMode = IterationMode.random;
 
   String get sourceName => _sourceName;
   late String _sourceName;
@@ -31,18 +44,20 @@ class VocabModel extends ChangeNotifier {
   final _tav = 'ת'.runes.first;
   final _aleph = 'א'.runes.first;
 
+  late List<Item> _items;
+  final DataModelSettings _settings = DataModelSettings(4, 16, 7);
+
+  bool _showHe = false;
+  bool _showEng = false;
+
   VocabModel(String fileName, List<List<String>> value, Serializer serializer) {
     _sourceName = p.basename(fileName);
+    _items = value.map((e) => Item(e)).toList();
 
-    var items = value.map((e) => Item(e)).toList();
-    var settings = DataModelSettings(4, 16, 7);
+    serializer.synch(_items);
+    Item.addSynonyms(_items);
 
-    serializer.synch(items);
-    Item.addSynonyms(items);
-
-    _seq = SequentialDataModel(items, settings);
-    _rand = RandomDataModel(items, settings);
-    _model = _rand;
+    setIterationMode(_iterationMode.index);
     _serializer = serializer;
   }
 
@@ -65,8 +80,7 @@ class VocabModel extends ChangeNotifier {
   }
 
   String get he0 {
-    if (_current == null) return "";
-    if (!_isComplete && _permanentDisplay == PermanentDisplay.eng) return "";
+    if (!_showHe || _current == null) return "";
 
     var str = _current!.he0;
     if (!_showNikud) str = _haserNikud(str);
@@ -75,14 +89,13 @@ class VocabModel extends ChangeNotifier {
   }
 
   String get eng0 {
-    if (_current == null) return "";
-    if (!_isComplete && _permanentDisplay == PermanentDisplay.he) return "";
+    if (!_showEng || _current == null) return "";
 
     return _current!.eng0;
   }
 
   String get he1 {
-    if (_current == null || !_isComplete) return "";
+    if (!_isComplete || _current == null) return "";
     return _current!.he1;
   }
 
@@ -91,24 +104,25 @@ class VocabModel extends ChangeNotifier {
   }
 
   String get eng1 {
-    if (_current == null || !_isComplete) return "";
+    if (!_isComplete || _current == null) return "";
     return _current!.eng1;
   }
 
   String get he2 {
-    if (_current == null || !_isComplete) return "";
+    if (!_isComplete || _current == null) return "";
     return _current!.he2;
   }
 
   String get eng2 {
-    if (_current == null || !_isComplete) return "";
+    if (!_isComplete || _current == null) return "";
     return _current!.eng2;
   }
 
   //---------------------------------[ commands ]---------------------------------
 
+  /// On button press 'Show'
   void showComplete() {
-    _isComplete = true;
+    _prepareTransaction(true);
     notifyListeners();
   }
 
@@ -123,29 +137,53 @@ class VocabModel extends ChangeNotifier {
       _serializer.push(_current!);
     }
 
-    _isComplete = _permanentDisplay == PermanentDisplay.view;
     _current = _model.nextItem(_current);
-
+    _prepareTransaction(false);
     notifyListeners();
   }
 
-  void setDisplay(int value) {
-    _permanentDisplay = PermanentDisplay.values[value];
+  void setIterationMode(int value) {
+    _iterationMode = IterationMode.values[value];
 
-    if (_permanentDisplay == PermanentDisplay.view) {
-      _seq.reset();
-      _model = _seq;
-      _current = null;
-      nextItem(0);
+    if (_iterationMode == IterationMode.sequential) {
+      _model = SequentialDataModel(_items, _settings);
     } else {
-      _model = _rand;
-      notifyListeners();
+      _model = RandomDataModel(_items, _settings);
     }
+  }
+
+  void setDisplayMode(int value) {
+    _displayMode = DisplayMode.values[value];
+    _prepareTransaction(_isComplete);
+    notifyListeners();
   }
 
   void start() {
     if (_current != null) return;
-    _isComplete = _permanentDisplay == PermanentDisplay.view;
     _current = _model.nextItem(null);
+    _prepareTransaction(false);
+  }
+
+  void _prepareTransaction(bool isComplete) {
+    _isComplete = isComplete || _displayMode == DisplayMode.complete;
+    if (!_isComplete) {
+      switch (_displayMode) {
+        case DisplayMode.he:
+          _guessMode = GuessMode.he;
+          break;
+        case DisplayMode.eng:
+          _guessMode = GuessMode.eng;
+          break;
+        case DisplayMode.random:
+          _guessMode = GuessMode.values[_random.nextInt(2)];
+          break;
+      }
+
+      _showHe = _guessMode == GuessMode.he;
+      _showEng = _guessMode == GuessMode.eng;
+    } else {
+      _showHe = true;
+      _showEng = true;
+    }
   }
 }

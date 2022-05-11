@@ -5,8 +5,9 @@ import 'Item.dart';
 
 abstract class AbstractDataModel with IterableMixin<Item> {
   final List<Item> _items;
+  final DataModelSettings _settings;
 
-  AbstractDataModel(this._items);
+  AbstractDataModel(this._items, this._settings);
 
   Item operator [](int index) => _items[index];
 
@@ -20,13 +21,8 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
 class SequentialDataModel extends AbstractDataModel {
   int _index = 0;
-  late DataModelSettings _settings;
 
-  SequentialDataModel(List<Item> items, DataModelSettings settings) : super(items) {
-    _settings = settings;
-  }
-
-  void reset() => _index = 0;
+  SequentialDataModel(List<Item> items, DataModelSettings settings) : super(items, settings);
 
   @override
   Item? nextItem(Item? current) {
@@ -39,20 +35,17 @@ class SequentialDataModel extends AbstractDataModel {
     // set new level if still learning, if already good then do nothing
     if (level < _settings.levelsNo - 1) {
       item.level = level;
-    } else if (item.level < _settings.levelsNo) {
+    } else if (item.level < _settings.levelsNo - 1) {
       int delta0 = _getDayNo();
-      item.level = DaysLevel(delta0, 1).pack();
+      item.level = DaysLevelTuple(delta0, 1).pack();
     }
   }
 }
 
 class RandomDataModel extends AbstractDataModel {
   final _random = Random();
-  late DataModelSettings _settings;
 
-  RandomDataModel(List<Item> items, DataModelSettings settings) : super(items) {
-    _settings = settings;
-  }
+  RandomDataModel(List<Item> items, DataModelSettings settings) : super(items, settings);
 
   @override
   Item? nextItem(Item? current) {
@@ -69,7 +62,7 @@ class RandomDataModel extends AbstractDataModel {
     int delta0 = _getDayNo();
     filt = items
         .where((item) => item.level > DataModelSettings.doneLevel)
-        .where((item) => DaysLevel.unpack(item.level).daysNo < delta0)
+        .where((item) => DaysLevelTuple.unpack(item.level).daysNo < delta0)
         .toList();
     next = _getRandomItem(filt, 0);
     if (next != null) return next;
@@ -88,7 +81,7 @@ class RandomDataModel extends AbstractDataModel {
 
     // if existing items are sparse and there is no new items
     filt = items.where((item) => item.level < DataModelSettings.doneLevel).toList();
-    next = _getRandomItem(items, 0);
+    next = _getRandomItem(filt, 0);
 
     return next;
   }
@@ -113,7 +106,7 @@ class RandomDataModel extends AbstractDataModel {
 
     // for the last level
     var isTuple = item.level > DataModelSettings.doneLevel;
-    var count = isTuple ? DaysLevel.unpack(item.level).level : 0;
+    var count = isTuple ? DaysLevelTuple.unpack(item.level).level : 0;
 
     count++;
 
@@ -121,7 +114,7 @@ class RandomDataModel extends AbstractDataModel {
       item.level = DataModelSettings.doneLevel;
     } else {
       int delta0 = _getDayNo();
-      item.level = DaysLevel(delta0, count).pack();
+      item.level = DaysLevelTuple(delta0, count).pack();
     }
   }
 }
@@ -144,13 +137,13 @@ class DataModelSettings {
   DataModelSettings(this.levelsNo, this.maxLevelCapacity, this.goodRepetitionsNo);
 }
 
-class DaysLevel {
+class DaysLevelTuple {
   late int level;
   late int daysNo;
 
-  DaysLevel(this.daysNo, this.level);
+  DaysLevelTuple(this.daysNo, this.level);
 
-  DaysLevel.unpack(int value) {
+  DaysLevelTuple.unpack(int value) {
     daysNo = value & 0xffff;
     level = (value >> 16) & 0xffff;
   }
