@@ -90,7 +90,7 @@ class VocabView extends ConsumerWidget {
                           textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
                       ToggleSwitch(
                         totalSwitches: 2,
-                        labels: const ['א', 'אֲ'],
+                        labels: const ['א', '∵'],
                         onToggle: (index) => model.setShowNikud(index!),
                         initialLabelIndex: model.showNikud ? 1 : 0,
                       ),
@@ -99,77 +99,79 @@ class VocabView extends ConsumerWidget {
         });
   }
 
-  Column _body(WidgetRef ref) {
+  Widget _body(WidgetRef ref) {
     var model = ref.watch(vocabProvider);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Text(model.sourceName,
-            textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
-        Text(model.statistics,
-            textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
-        const Text(""),
-        const Text(""),
-        (model.guessMode == GuessMode.eng
-            ? Text(model.eng0,
-                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
-            : Text(
-                model.he0,
-                textScaleFactor: 2,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                textDirection: TextDirection.rtl,
-                overflow: TextOverflow.clip,
-              )),
-        const Text("_______________________________________"),
-        (model.guessMode == GuessMode.eng
-            ? Text(model.he0,
-                textScaleFactor: 2,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                textDirection: TextDirection.rtl)
-            : Text(
-                model.eng0,
-                textScaleFactor: 2,
-                style: const TextStyle(fontWeight: FontWeight.w100),
-                overflow: TextOverflow.clip,
-              )),
-        const Text(""),
-        const Text(""),
-        Row(
+    return Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: model.hasEng1
-              ? [
-                  Text(model.he1, textScaleFactor: 2, textDirection: TextDirection.rtl),
-                  const Text("   "),
-                  Text(
-                    model.eng1,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Text(model.sourceName,
+                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
+            Text(model.statistics,
+                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
+            const Text(""),
+            const Text(""),
+            (model.guessMode == GuessMode.eng
+                ? Text(model.eng0,
+                    textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
+                : Text(
+                    model.he0,
+                    textScaleFactor: 2,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    textDirection: TextDirection.rtl,
+                    overflow: TextOverflow.clip,
+                  )),
+            const Text("_______________________________________"),
+            (model.guessMode == GuessMode.eng
+                ? Text(model.he0,
+                    textScaleFactor: 2,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    textDirection: TextDirection.rtl)
+                : Text(
+                    model.eng0,
                     textScaleFactor: 2,
                     style: const TextStyle(fontWeight: FontWeight.w100),
                     overflow: TextOverflow.clip,
-                  )
-                ]
-              : [
-                  Text(
-                    model.he1,
-                    textScaleFactor: 2,
-                    textDirection: TextDirection.rtl,
-                    overflow: TextOverflow.clip,
-                  ),
-                ],
-        ),
-        const Text(""),
-        Text(
-          model.he2,
-          textScaleFactor: 2,
-          textDirection: TextDirection.rtl,
-          overflow: TextOverflow.clip,
-        ),
-        Text(model.eng2,
-            textScaleFactor: 2,
-            style: const TextStyle(fontWeight: FontWeight.w100),
-            overflow: TextOverflow.clip),
-      ],
-    );
+                  )),
+            const Text(""),
+            const Text(""),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: model.hasEng1
+                  ? [
+                      Text(model.he1, textScaleFactor: 2, textDirection: TextDirection.rtl),
+                      const Text("   "),
+                      Text(
+                        model.eng1,
+                        textScaleFactor: 2,
+                        style: const TextStyle(fontWeight: FontWeight.w100),
+                        overflow: TextOverflow.clip,
+                      )
+                    ]
+                  : [
+                      Text(
+                        model.he1,
+                        textScaleFactor: 2,
+                        textDirection: TextDirection.rtl,
+                        overflow: TextOverflow.clip,
+                      ),
+                    ],
+            ),
+            const Text(""),
+            Text(
+              model.he2,
+              textScaleFactor: 2,
+              textDirection: TextDirection.rtl,
+              overflow: TextOverflow.clip,
+            ),
+            Text(model.eng2,
+                textScaleFactor: 2,
+                style: const TextStyle(fontWeight: FontWeight.w100),
+                overflow: TextOverflow.clip),
+          ],
+        ));
   }
 
   Widget _buttons(WidgetRef ref) {

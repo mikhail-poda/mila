@@ -45,7 +45,7 @@ class VocabModel extends ChangeNotifier {
   final _aleph = 'א'.runes.first;
 
   late List<Item> _items;
-  final DataModelSettings _settings = DataModelSettings(4, 16, 7);
+  final DataModelSettings _settings = DataModelSettings(4, 16, 3);
 
   bool _showHe = false;
   bool _showEng = false;
