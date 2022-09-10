@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import 'DataModel.dart';
+import 'ISerializer.dart';
 import 'Item.dart';
-import 'SourcesModel.dart';
 
 enum GuessMode { he, eng }
 enum IterationMode { sequential, random }
@@ -15,11 +15,11 @@ class VocabModel extends ChangeNotifier {
   Item? _current;
   final _random = Random();
 
+  late ISerializer _serializer;
   late AbstractDataModel _model;
-  late Serializer _serializer;
 
   bool get showNikud => _showNikud;
-  bool _showNikud = false;
+  bool _showNikud = true;
 
   // transaction
   bool get isComplete => _isComplete;
@@ -31,7 +31,7 @@ class VocabModel extends ChangeNotifier {
 
   // settings
   DisplayMode get displayMode => _displayMode;
-  DisplayMode _displayMode = DisplayMode.he;
+  DisplayMode _displayMode = DisplayMode.eng;
 
   // settings
   IterationMode get iterationMode => _iterationMode;
@@ -45,16 +45,16 @@ class VocabModel extends ChangeNotifier {
   final _aleph = 'א'.runes.first;
 
   late List<Item> _items;
-  final DataModelSettings _settings = DataModelSettings(4, 16, 3);
+  final DataModelSettings _settings = DataModelSettings(4, 40, 3);
 
   bool _showHe = false;
   bool _showEng = false;
 
-  VocabModel(String fileName, List<List<String>> value, Serializer serializer) {
+  VocabModel(String fileName, List<Item> items, ISerializer serializer) {
     _sourceName = p.basename(fileName);
-    _items = value.map((e) => Item(e)).toList();
+    _items = items;
 
-    serializer.synch(_items);
+    serializer.sync(_items);
     Item.addSynonyms(_items);
 
     setIterationMode(_iterationMode.index);
@@ -71,12 +71,13 @@ class VocabModel extends ChangeNotifier {
 
   String get statistics {
     var total = _model.length;
+    var omit = _model.where((element) => element.level == DataModelSettings.omitLevel).length;
     var done = _model.where((element) => element.level == DataModelSettings.doneLevel).length;
     var undone = _model.where((element) => element.level == DataModelSettings.undoneLevel).length;
     var longMem = _model.where((element) => element.level > DataModelSettings.doneLevel).length;
-    var current = total - (done + undone + longMem);
+    var current = total - (omit + undone + longMem + done);
 
-    return "$total = $undone + $current + $longMem + $done";
+    return "$total = ($omit) + $undone + $current + $longMem + $done";
   }
 
   String get he0 {

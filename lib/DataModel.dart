@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:math';
+import 'package:darq/darq.dart';
 
 import 'Item.dart';
 
@@ -44,55 +45,59 @@ class SequentialDataModel extends AbstractDataModel {
 
 class RandomDataModel extends AbstractDataModel {
   final _random = Random();
+  Item? _last;
 
   RandomDataModel(List<Item> items, DataModelSettings settings) : super(items, settings);
 
   @override
   Item? nextItem(Item? current) {
     var items = _items
-        .where((item) => item.level != DataModelSettings.doneLevel && item != current)
+        .where((item) => item.level != DataModelSettings.doneLevel)
+        .where((item) => item != current)
+        .where((item) => item != _last)
         .toList();
 
     Item? next;
-    List<Item> filt;
+    _last = current;
+    var filt = <Item>[];
 
     if (items.isEmpty) return null;
 
-    // try with an existing item for long term memory
-    int delta0 = _getDayNo();
-    filt = items
+    // start with an existing item for long-term memory
+    int dayNo = _getDayNo();
+    var filt0 = items
         .where((item) => item.level > DataModelSettings.doneLevel)
-        .where((item) => DaysLevelTuple.unpack(item.level).daysNo < delta0)
+        .where((item) => DaysLevelTuple.unpack(item.level).dayNo < dayNo)
         .toList();
-    next = _getRandomItem(filt, 0);
-    if (next != null) return next;
 
-    // try with an existing item
-    for (int level = 0; level < _settings.levelsNo; level++) {
-      filt = items.where((item) => item.level == level).toList();
-      next = _getRandomItem(filt, _settings.maxLevelCapacity);
-      if (next != null) return next;
+    var filt1 = items
+        .where((item) => item.level < DataModelSettings.doneLevel)
+        .where((item) => item.level > DataModelSettings.undoneLevel);
+
+    var filt2 = items.where((item) => item.level == DataModelSettings.undoneLevel);
+
+    for (var item in filt1.concat(filt2)) {
+      filt.addAll(List.filled(_settings.levelsNo - item.level, item));
+      if (filt.length > _settings.maxCapacity) break;
     }
 
-    // try with a new item
-    filt = items.where((item) => item.level == DataModelSettings.undoneLevel).toList();
-    next = _getRandomItem(filt, 0);
+    filt.addAll(filt0);
+
+    next = _getRandomItem(filt);
     if (next != null) return next;
 
-    // if existing items are sparse and there is no new items
-    filt = items.where((item) => item.level < DataModelSettings.doneLevel).toList();
-    next = _getRandomItem(filt, 0);
+    // as last show omitted items
+    filt = items.where((item) => item.level == DataModelSettings.omitLevel).toList();
+    next = _getRandomItem(filt);
 
     return next;
   }
 
-  Item? _getRandomItem(List<Item> items, int maxLevelCapacity) {
+  Item? _getRandomItem(List<Item> items) {
     if (items.isEmpty) return null;
     var size = items.length;
-    var maxi = maxLevelCapacity == 0 ? size : maxLevelCapacity;
-    var ind = _random.nextInt(maxi);
-    var next = ind < size ? items[ind] : null;
-    return next;
+    var ind = _random.nextInt(size);
+    return items[ind];
   }
 
   @override
@@ -106,6 +111,13 @@ class RandomDataModel extends AbstractDataModel {
 
     // for the last level
     var isTuple = item.level > DataModelSettings.doneLevel;
+
+    // if the knowledge is perfect for the first time than give another try today
+    if (!isTuple) {
+      item.level = DataModelSettings.doneLevel + 1;
+      return;
+    }
+
     var count = isTuple ? DaysLevelTuple.unpack(item.level).level : 0;
 
     count++;
@@ -128,27 +140,28 @@ int _getDayNo() {
 
 class DataModelSettings {
   final int levelsNo;
-  final int maxLevelCapacity;
+  final int maxCapacity;
   final int goodRepetitionsNo;
 
   static int doneLevel = 100;
   static int undoneLevel = -1;
+  static int omitLevel = -2;
 
-  DataModelSettings(this.levelsNo, this.maxLevelCapacity, this.goodRepetitionsNo);
+  DataModelSettings(this.levelsNo, this.maxCapacity, this.goodRepetitionsNo);
 }
 
 class DaysLevelTuple {
   late int level;
-  late int daysNo;
+  late int dayNo;
 
-  DaysLevelTuple(this.daysNo, this.level);
+  DaysLevelTuple(this.dayNo, this.level);
 
   DaysLevelTuple.unpack(int value) {
-    daysNo = value & 0xffff;
+    dayNo = value & 0xffff;
     level = (value >> 16) & 0xffff;
   }
 
   int pack() {
-    return daysNo | (level << 16);
+    return dayNo | (level << 16);
   }
 }

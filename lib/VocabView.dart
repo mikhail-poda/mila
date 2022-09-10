@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mila/PlatformSwitch.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 import 'DataModel.dart';
 import 'Providers.dart';
-import 'SourcesModel.dart';
 import 'SourcesView.dart';
 import 'VocabModel.dart';
 
 final fileResultProvider = FutureProvider<VocabModel>((ref) async {
   final fileName = ref.watch(sourceNotifierProvider);
-  return FileModel.load(fileName);
+
+  final items = await PlatformSwitch.getItems(fileName);
+  final serializer = await PlatformSwitch.getSerializer(fileName);
+
+  return VocabModel(fileName, items, serializer);
 });
 
 final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
@@ -190,7 +194,7 @@ class VocabView extends ConsumerWidget {
               FloatingActionButton(
                 backgroundColor: Colors.white,
                 heroTag: 2,
-                onPressed: () => model.nextItem(DataModelSettings.undoneLevel),
+                onPressed: () => model.nextItem(DataModelSettings.omitLevel),
                 child: const Text("Hide", style: TextStyle(color: Colors.grey)),
               ),
               FloatingActionButton(

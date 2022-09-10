@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'PlatformSwitch.dart';
 import 'Providers.dart';
-import 'SourcesModel.dart';
 import 'VocabView.dart';
 
-final directoryModelProvider = Provider((ref) => DirectoryModel());
-
-final directoryResultProvider = FutureProvider<List<String>>((ref) async {
-  final directoryModel = ref.watch(directoryModelProvider);
-  return directoryModel.get();
-});
+final directoryResultProvider = FutureProvider<List<String>>((ref) async => PlatformSwitch.getVocabularies());
 
 final sourceNotifierProvider = StateProvider<String>((ref) => "");
 
