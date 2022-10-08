@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mila/ISerializer.dart';
 
-import 'PlatformSwitch.dart';
 import 'Providers.dart';
 import 'VocabView.dart';
+import 'main.dart';
 
-final directoryResultProvider = FutureProvider<List<String>>((ref) async => PlatformSwitch.getVocabularies());
+final directoryResultProvider =
+    FutureProvider<List<String>>((ref) async => GetIt.I<ISource>().getVocabularies());
 
 final sourceNotifierProvider = StateProvider<String>((ref) => "");
 
@@ -15,6 +18,11 @@ class SourcesView extends ConsumerWidget {
   @override
   Widget build(context, ref) {
     final asyncModel = ref.watch(directoryResultProvider);
+
+    AppConfig.width = MediaQuery.of(context).size.width;
+    AppConfig.height = MediaQuery.of(context).size.height;
+    AppConfig.blockWidth = AppConfig.width / 100;
+    AppConfig.blockHeight = AppConfig.height / 100;
 
     return Container(
         color: Colors.white,
@@ -48,7 +56,11 @@ class SourcesView extends ConsumerWidget {
                               ),
                             );
                           },
-                          title: Text(list[index])));
+                          title: Text(
+                            list[index],
+                            textScaleFactor: 1.5,
+                            style: const TextStyle(fontWeight: FontWeight.w300),
+                          )));
                 })));
   }
 }

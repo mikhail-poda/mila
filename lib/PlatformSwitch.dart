@@ -1,35 +1,40 @@
-import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:mila/ISerializer.dart';
 import 'package:mila/Item.dart';
-import 'PlatformWin.dart';
+import 'WebSource.dart';
+import 'WinSource.dart';
 
 import 'package:path/path.dart' as p;
+//import 'package:flutter/foundation.dart' show kIsWeb;
 
+/*
 class PlatformSwitch {
+  static const kIsWeb = true;
+
   static Future<List<String>> getVocabularies() async {
-    if (Platform.isWindows) {
-      return PlatformWin.getVocabularies();
+    if (kIsWeb) {
+      return PlatformWeb.getVocabularies();
     } else {
-      throw PlatformException(code: "Not supported platform");
+      return PlatformWin.getVocabularies();
     }
   }
 
   static Future<List<Item>> getItems(String fileName) async {
-    if (Platform.isWindows) {
-      final lines = await PlatformWin.loadAsync(fileName).toList();
+    if (kIsWeb) {
+      final lines = await PlatformWeb.loadAsync(fileName);
       return lines.map((e) => Item(e)).toList();
     } else {
-      throw PlatformException(code: "Not supported platform");
+      final lines = await PlatformWin.loadAsync(fileName);
+      return lines.map((e) => Item(e)).toList();
     }
   }
 
   static Future<ISerializer> getSerializer(String fileName) async {
-    if (Platform.isWindows) {
+    if (kIsWeb) {
+      return await SerializerWeb();
+    } else {
       final dirName = p.dirname(fileName);
       return await SerializerWin.load(dirName);
-    } else {
-      throw PlatformException(code: "Not supported platform");
     }
   }
 }
+ */

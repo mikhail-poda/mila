@@ -6,9 +6,12 @@ import 'package:path/path.dart' as p;
 import 'DataModel.dart';
 import 'ISerializer.dart';
 import 'Item.dart';
+import 'Library.dart';
 
 enum GuessMode { he, eng }
+
 enum IterationMode { sequential, random }
+
 enum DisplayMode { he, eng, random, complete }
 
 class VocabModel extends ChangeNotifier {
@@ -40,10 +43,6 @@ class VocabModel extends ChangeNotifier {
   String get sourceName => _sourceName;
   late String _sourceName;
 
-  final _ws = ' '.runes.first;
-  final _tav = 'ת'.runes.first;
-  final _aleph = 'א'.runes.first;
-
   late List<Item> _items;
   final DataModelSettings _settings = DataModelSettings(4, 40, 3);
 
@@ -61,30 +60,31 @@ class VocabModel extends ChangeNotifier {
     _serializer = serializer;
   }
 
-  String _haserNikud(String str) {
-    var runes = str.runes.where((char) => (char >= _aleph && char <= _tav) || char == _ws).toList();
-    str = String.fromCharCodes(runes);
-    return str;
-  }
-
   //---------------------------------[ properties ]---------------------------------
 
-  String get statistics {
-    var total = _model.length;
-    var omit = _model.where((element) => element.level == DataModelSettings.omitLevel).length;
-    var done = _model.where((element) => element.level == DataModelSettings.doneLevel).length;
-    var undone = _model.where((element) => element.level == DataModelSettings.undoneLevel).length;
-    var longMem = _model.where((element) => element.level > DataModelSettings.doneLevel).length;
-    var current = total - (omit + undone + longMem + done);
+  int get length => _model.length;
 
-    return "$total = ($omit) + $undone + $current + $longMem + $done";
-  }
+  int get count1 =>
+      _model.where((element) => element.level == DataModelSettings.hiddenLevel).length;
+
+  int get count2 =>
+      _model.where((element) => element.level == DataModelSettings.undoneLevel).length;
+
+  int get count3 => _model
+      .where((element) =>
+          (element.level > DataModelSettings.undoneLevel) &&
+          (element.level < DataModelSettings.doneLevel))
+      .length;
+
+  int get count4 => _model.where((element) => element.level > DataModelSettings.doneLevel).length;
+
+  int get count5 => _model.where((element) => element.level == DataModelSettings.doneLevel).length;
 
   String get he0 {
     if (!_showHe || _current == null) return "";
 
     var str = _current!.he0;
-    if (!_showNikud) str = _haserNikud(str);
+    if (!_showNikud) str = haserNikud(str);
 
     return str;
   }

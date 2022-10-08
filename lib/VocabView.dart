@@ -1,20 +1,25 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mila/PlatformSwitch.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mila/ISerializer.dart';
+import 'package:mila/Item.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
-import 'DataModel.dart';
-import 'Providers.dart';
 import 'SourcesView.dart';
 import 'VocabModel.dart';
+import 'main.dart';
 
 final fileResultProvider = FutureProvider<VocabModel>((ref) async {
-  final fileName = ref.watch(sourceNotifierProvider);
+  final source = ref.watch(sourceNotifierProvider);
 
-  final items = await PlatformSwitch.getItems(fileName);
-  final serializer = await PlatformSwitch.getSerializer(fileName);
+  var lines = GetIt.I<ISource>().loadVocabulary(source);
+  final items = await lines.map((e) => Item(e)).toList();
+  final serializer = GetIt.I<ISerializer>();
 
-  return VocabModel(fileName, items, serializer);
+  return VocabModel(source, items, serializer);
 });
 
 final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
@@ -45,13 +50,13 @@ class VocabView extends ConsumerWidget {
     model.start();
 
     return Scaffold(
-        appBar: AppBar(title: const Text(titleString), actions: <Widget>[
+        appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
           Padding(
               padding: const EdgeInsets.only(right: 20.0),
               child: GestureDetector(
                 onTap: () => _settings(context, model),
                 child: const Icon(
-                  Icons.settings,
+                  Icons.menu,
                   size: 26.0,
                 ),
               )),
@@ -108,78 +113,137 @@ class VocabView extends ConsumerWidget {
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text(model.sourceName,
-                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
-            Text(model.statistics,
-                textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100)),
-            const Text(""),
-            const Text(""),
-            (model.guessMode == GuessMode.eng
-                ? Text(model.eng0,
-                    textScaleFactor: 2, style: const TextStyle(fontWeight: FontWeight.w100))
-                : Text(
-                    model.he0,
-                    textScaleFactor: 2,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    textDirection: TextDirection.rtl,
-                    overflow: TextOverflow.clip,
-                  )),
-            const Text("_______________________________________"),
-            (model.guessMode == GuessMode.eng
-                ? Text(model.he0,
-                    textScaleFactor: 2,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    textDirection: TextDirection.rtl)
-                : Text(
-                    model.eng0,
-                    textScaleFactor: 2,
-                    style: const TextStyle(fontWeight: FontWeight.w100),
-                    overflow: TextOverflow.clip,
-                  )),
-            const Text(""),
-            const Text(""),
+          children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                showStat(model.count1, Icons.do_disturb_on_outlined, Colors.black38),
+                const Expanded(child: Text("")),
+                showStat(model.count2, Icons.hourglass_empty_sharp, Colors.black45),
+                const Expanded(child: Text("")),
+                showStat(model.count3, Icons.repeat, Colors.orange),
+                const Expanded(child: Text("")),
+                showStat(model.count4, Icons.done, Colors.green),
+                const Expanded(child: Text("")),
+                showStat(model.count5, Icons.done_all, Colors.lightGreen),
+              ],
+            ),
+            Expanded(
+                child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: model.hasEng1
-                  ? [
-                      Text(model.he1, textScaleFactor: 2, textDirection: TextDirection.rtl),
-                      const Text("   "),
-                      Text(
-                        model.eng1,
-                        textScaleFactor: 2,
-                        style: const TextStyle(fontWeight: FontWeight.w100),
-                        overflow: TextOverflow.clip,
-                      )
-                    ]
-                  : [
-                      Text(
-                        model.he1,
-                        textScaleFactor: 2,
-                        textDirection: TextDirection.rtl,
-                        overflow: TextOverflow.clip,
-                      ),
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: _content(model),
+            )),
+            model.isComplete
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Expanded(child: Text("")),
+                      textLink('פ', 'https://www.pealim.com/search/?q=${model.he0}'),
+                      const Expanded(child: Text("")),
+                      textLink('מ', 'https://www.morfix.co.il/${model.he0}'),
+                      const Expanded(child: Text("")),
+                      textLink('r',
+                          'https://context.reverso.net/translation/hebrew-english/${model.he0}'),
+                      const Expanded(child: Text(""))
                     ],
-            ),
-            const Text(""),
-            Text(
-              model.he2,
-              textScaleFactor: 2,
-              textDirection: TextDirection.rtl,
-              overflow: TextOverflow.clip,
-            ),
-            Text(model.eng2,
-                textScaleFactor: 2,
-                style: const TextStyle(fontWeight: FontWeight.w100),
-                overflow: TextOverflow.clip),
+                  )
+                : const Text("")
           ],
         ));
   }
 
+  TextButton textLink(String name, String link) {
+    return TextButton(
+        onPressed: () {
+          launchUrlString(link);
+        },
+        child: Text(name,
+            textScaleFactor: 3.5,
+            style: const TextStyle(color: Colors.black26, fontWeight: FontWeight.bold)));
+  }
+
+  Widget showStat(int number, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 20),
+        Text(' $number', textScaleFactor: 1.5, style: TextStyle(color: color))
+      ],
+    );
+  }
+
+  List<Widget> _content(VocabModel model) {
+    return <Widget>[
+      (model.guessMode == GuessMode.eng
+          ? Text(
+              model.eng0,
+              textScaleFactor: 2,
+              style: const TextStyle(fontWeight: FontWeight.w300),
+            )
+          : Text(
+              model.he0,
+              textScaleFactor: 2,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              textDirection: TextDirection.rtl,
+              overflow: TextOverflow.clip,
+            )),
+      const Text("_______________________________________"),
+      (model.guessMode == GuessMode.eng
+          ? Text(model.he0,
+              textScaleFactor: 2,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              textDirection: TextDirection.rtl)
+          : Text(
+              model.eng0,
+              textScaleFactor: 2,
+              overflow: TextOverflow.clip,
+              style: const TextStyle(fontWeight: FontWeight.w300),
+            )),
+      const Text(""),
+      const Text(""),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: model.hasEng1
+            ? [
+                Text(model.he1, textScaleFactor: 1.75, textDirection: TextDirection.rtl),
+                const Text("   "),
+                Text(
+                  model.eng1,
+                  textScaleFactor: 1.75,
+                  overflow: TextOverflow.clip,
+                  style: const TextStyle(fontWeight: FontWeight.w300),
+                )
+              ]
+            : [
+                Text(
+                  model.he1,
+                  textScaleFactor: 1.75,
+                  textDirection: TextDirection.rtl,
+                  overflow: TextOverflow.clip,
+                ),
+              ],
+      ),
+      const Text(""),
+      Text(
+        model.he2,
+        textScaleFactor: 1.75,
+        textDirection: TextDirection.rtl,
+        overflow: TextOverflow.clip,
+      ),
+      Text(
+        model.eng2,
+        textScaleFactor: 1.75,
+        overflow: TextOverflow.clip,
+        style: const TextStyle(fontWeight: FontWeight.w300),
+      ),
+    ];
+  }
+
   Widget _buttons(WidgetRef ref) {
     var model = ref.watch(vocabProvider);
+    var val = AppConfig.blockWidth / 3;
+    var textScaleFactor = max(min(2.0, val), 1.0);
+
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: !model.isComplete
@@ -187,39 +251,59 @@ class VocabView extends ConsumerWidget {
               FloatingActionButton.extended(
                 heroTag: 1,
                 onPressed: () => model.showComplete(),
-                label: const Text("           Show           "),
+                label: const Text(
+                  "           Show           ",
+                  textScaleFactor: 1.75,
+                  style: TextStyle(fontWeight: FontWeight.w300),
+                ),
               )
             ]
           : <Widget>[
-              FloatingActionButton(
+              /*FloatingActionButton(
                 backgroundColor: Colors.white,
                 heroTag: 2,
                 onPressed: () => model.nextItem(DataModelSettings.omitLevel),
                 child: const Text("Hide", style: TextStyle(color: Colors.grey)),
-              ),
-              FloatingActionButton(
+              ),*/
+              FloatingActionButton.extended(
                 backgroundColor: Colors.red,
                 heroTag: 3,
                 onPressed: () => model.nextItem(0),
-                child: const Text("Again"),
+                label: Text(
+                  "Again",
+                  textScaleFactor: textScaleFactor,
+                  style: TextStyle(fontWeight: FontWeight.w300),
+                ),
               ),
-              FloatingActionButton(
+              FloatingActionButton.extended(
                 backgroundColor: Colors.orange,
                 heroTag: 4,
                 onPressed: () => model.nextItem(1),
-                child: const Text("Hard"),
+                label: Text(
+                  "Hard",
+                  textScaleFactor: textScaleFactor,
+                  style: TextStyle(fontWeight: FontWeight.w300),
+                ),
               ),
-              FloatingActionButton(
+              FloatingActionButton.extended(
                 backgroundColor: Colors.lightBlueAccent,
                 heroTag: 5,
                 onPressed: () => model.nextItem(2),
-                child: const Text("Good"),
+                label: Text(
+                  "Good",
+                  textScaleFactor: textScaleFactor,
+                  style: TextStyle(fontWeight: FontWeight.w300),
+                ),
               ),
-              FloatingActionButton(
+              FloatingActionButton.extended(
                 backgroundColor: Colors.green,
                 heroTag: 6,
                 onPressed: () => model.nextItem(3),
-                child: const Text("Easy"),
+                label: Text(
+                  "Easy",
+                  textScaleFactor: textScaleFactor,
+                  style: TextStyle(fontWeight: FontWeight.w300),
+                ),
               ),
             ],
     );

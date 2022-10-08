@@ -1,5 +1,11 @@
 import 'Item.dart';
 
+abstract class ISource {
+  Future<List<String>> getVocabularies();
+
+  Stream<List<String>> loadVocabulary(String fileName);
+}
+
 abstract class ISerializer {
   void push(Item item);
 

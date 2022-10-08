@@ -86,10 +86,6 @@ class RandomDataModel extends AbstractDataModel {
     next = _getRandomItem(filt);
     if (next != null) return next;
 
-    // as last show omitted items
-    filt = items.where((item) => item.level == DataModelSettings.omitLevel).toList();
-    next = _getRandomItem(filt);
-
     return next;
   }
 
@@ -145,7 +141,7 @@ class DataModelSettings {
 
   static int doneLevel = 100;
   static int undoneLevel = -1;
-  static int omitLevel = -2;
+  static int hiddenLevel = -2;
 
   DataModelSettings(this.levelsNo, this.maxCapacity, this.goodRepetitionsNo);
 }
