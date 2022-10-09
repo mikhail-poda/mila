@@ -13,7 +13,7 @@ import 'VocabModel.dart';
 import 'main.dart';
 
 final fileResultProvider = FutureProvider<VocabModel>((ref) async {
-  final source = ref.watch(sourceNotifierProvider);
+  final source = ref.watch(vocabularyNameProvider);
 
   var lines = GetIt.I<ISource>().loadVocabulary(source);
   final items = await lines.map((e) => Item(e)).toList();
@@ -268,7 +268,7 @@ class VocabView extends ConsumerWidget {
               FloatingActionButton.extended(
                 backgroundColor: Colors.red,
                 heroTag: 3,
-                onPressed: () => model.nextItem(0),
+                onPressed: () => model.nextItem(1),
                 label: Text(
                   "Again",
                   textScaleFactor: textScaleFactor,
@@ -278,7 +278,7 @@ class VocabView extends ConsumerWidget {
               FloatingActionButton.extended(
                 backgroundColor: Colors.orange,
                 heroTag: 4,
-                onPressed: () => model.nextItem(1),
+                onPressed: () => model.nextItem(2),
                 label: Text(
                   "Hard",
                   textScaleFactor: textScaleFactor,
@@ -288,7 +288,7 @@ class VocabView extends ConsumerWidget {
               FloatingActionButton.extended(
                 backgroundColor: Colors.lightBlueAccent,
                 heroTag: 5,
-                onPressed: () => model.nextItem(2),
+                onPressed: () => model.nextItem(3),
                 label: Text(
                   "Good",
                   textScaleFactor: textScaleFactor,
@@ -298,7 +298,7 @@ class VocabView extends ConsumerWidget {
               FloatingActionButton.extended(
                 backgroundColor: Colors.green,
                 heroTag: 6,
-                onPressed: () => model.nextItem(3),
+                onPressed: () => model.nextItem(4),
                 label: Text(
                   "Easy",
                   textScaleFactor: textScaleFactor,

@@ -3,21 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mila/ISerializer.dart';
 
-import 'Providers.dart';
+import 'Constants.dart';
 import 'VocabView.dart';
 import 'main.dart';
 
-final directoryResultProvider =
+final vocabulariesListProvider =
     FutureProvider<List<String>>((ref) async => GetIt.I<ISource>().getVocabularies());
 
-final sourceNotifierProvider = StateProvider<String>((ref) => "");
+final vocabularyNameProvider = StateProvider<String>((ref) => "");
 
 class SourcesView extends ConsumerWidget {
   const SourcesView({Key? key}) : super(key: key);
 
   @override
   Widget build(context, ref) {
-    final asyncModel = ref.watch(directoryResultProvider);
+    final asyncModel = ref.watch(vocabulariesListProvider);
 
     AppConfig.width = MediaQuery.of(context).size.width;
     AppConfig.height = MediaQuery.of(context).size.height;
@@ -48,7 +48,7 @@ class SourcesView extends ConsumerWidget {
                   return Material(
                       child: ListTile(
                           onTap: () {
-                            ref.read(sourceNotifierProvider.notifier).state = list[index];
+                            ref.read(vocabularyNameProvider.notifier).state = list[index];
                             Navigator.push(
                               context,
                               MaterialPageRoute(

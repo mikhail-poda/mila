@@ -1,6 +1,7 @@
 import 'DataModel.dart';
 
 class Item {
+  DateTime? lastUse;
   int level = DataModelSettings.undoneLevel;
   final List<String>? _row;
 
@@ -59,11 +60,7 @@ class Item {
 
     // make a set of items for each word
     for (final item in items) {
-      final cell = item.eng0
-          .replaceAll(";", ",")
-          .split(",")
-          .map((s) => s.trim())
-          .toList();
+      final cell = item.eng0.replaceAll(";", ",").split(",").map((s) => s.trim()).toList();
 
       for (final str in cell) {
         var set = map[str];
@@ -96,8 +93,8 @@ class Item {
       for (final other in iset!) {
         if (item == other) continue;
 
-        item.he1 += (' / ' + other.he0);
-        item.eng1 += (' / ' + other.eng0);
+        item.he1 += ' / ${other.he0}';
+        item.eng1 += ' / ${other.eng0}';
       }
     }
   }

@@ -6,84 +6,87 @@ import 'Item.dart';
 
 abstract class AbstractDataModel with IterableMixin<Item> {
   final List<Item> _items;
-  final DataModelSettings _settings;
 
-  AbstractDataModel(this._items, this._settings);
+  AbstractDataModel(this._items);
 
   Item operator [](int index) => _items[index];
 
   @override
   Iterator<Item> get iterator => _items.iterator;
 
-  void setLevel(Item item, int level);
-
   Item? nextItem(Item? current);
+
+  void setLevel(Item item, int level) {
+    if (level < DataModelSettings.levelsNo || item.level < DataModelSettings.levelsNo) {
+      item.level = level;
+    } else {
+      item.level++;
+    }
+    item.lastUse = DateTime.now();
+  }
 }
 
 class SequentialDataModel extends AbstractDataModel {
   int _index = 0;
 
-  SequentialDataModel(List<Item> items, DataModelSettings settings) : super(items, settings);
+  SequentialDataModel(List<Item> items) : super(items);
 
   @override
   Item? nextItem(Item? current) {
     var ind = _index++;
     return _items[ind % _items.length];
   }
-
-  @override
-  void setLevel(Item item, int level) {
-    // set new level if still learning, if already good then do nothing
-    if (level < _settings.levelsNo - 1) {
-      item.level = level;
-    } else if (item.level < _settings.levelsNo - 1) {
-      int delta0 = _getDayNo();
-      item.level = DaysLevelTuple(delta0, 1).pack();
-    }
-  }
 }
 
 class RandomDataModel extends AbstractDataModel {
   final _random = Random();
-  Item? _last;
+  final _last = Queue<Item>();
+  final _unused = HashSet<Item>();
+  final _now = DateTime.now();
 
-  RandomDataModel(List<Item> items, DataModelSettings settings) : super(items, settings);
+  RandomDataModel(List<Item> items) : super(items) {
+    for (var item in items) {
+      if (item.level == DataModelSettings.hiddenLevel) {
+        _unused.add(item);
+      } else {
+        var diff = item.level - DataModelSettings.levelsNo;
+        if (diff < 0) continue;
+
+        var days = pow(2, diff) as int;
+        var next = item.lastUse!.add(Duration(days: days));
+
+        if (next.isAfter(_now)) _unused.add(item);
+      }
+    }
+  }
 
   @override
   Item? nextItem(Item? current) {
+    if (current != null) _last.addFirst(current);
+    if (_last.length > DataModelSettings.minExclude) _last.removeLast();
+
+    var hset = HashSet.of(_last);
+
     var items = _items
-        .where((item) => item.level != DataModelSettings.doneLevel)
-        .where((item) => item != current)
-        .where((item) => item != _last)
+        .where((item) => !_unused.contains(item))
+        .where((item) => !hset.contains(item))
+        .orderByDescending((item) => item.level)
         .toList();
 
-    Item? next;
-    _last = current;
-    var filt = <Item>[];
-
-    if (items.isEmpty) return null;
-
-    // start with an existing item for long-term memory
-    int dayNo = _getDayNo();
-    var filt0 = items
-        .where((item) => item.level > DataModelSettings.doneLevel)
-        .where((item) => DaysLevelTuple.unpack(item.level).dayNo < dayNo)
-        .toList();
-
-    var filt1 = items
-        .where((item) => item.level < DataModelSettings.doneLevel)
-        .where((item) => item.level > DataModelSettings.undoneLevel);
-
-    var filt2 = items.where((item) => item.level == DataModelSettings.undoneLevel);
-
-    for (var item in filt1.concat(filt2)) {
-      filt.addAll(List.filled(_settings.levelsNo - item.level, item));
-      if (filt.length > _settings.maxCapacity) break;
+    if (items.isEmpty) {
+      // TODO: go thru the last
+      return null;
     }
 
-    filt.addAll(filt0);
+    var list = <Item>[];
 
-    next = _getRandomItem(filt);
+    for (var item in items) {
+      var num = max(1, 1 + DataModelSettings.levelsNo - item.level);
+      list.addAll(List.filled(num, item));
+      if (list.length > DataModelSettings.maxCapacity) break;
+    }
+
+    var next = _getRandomItem(list);
     if (next != null) return next;
 
     return next;
@@ -98,66 +101,18 @@ class RandomDataModel extends AbstractDataModel {
 
   @override
   void setLevel(Item item, int level) {
-    // for all but the last level
-    var progressLevel = _settings.levelsNo - 1;
-    if (level < progressLevel) {
-      item.level = level;
-      return;
-    }
+    super.setLevel(item, level);
 
-    // for the last level
-    var isTuple = item.level > DataModelSettings.doneLevel;
-
-    // if the knowledge is perfect for the first time than give another try today
-    if (!isTuple) {
-      item.level = DataModelSettings.doneLevel + 1;
-      return;
-    }
-
-    var count = isTuple ? DaysLevelTuple.unpack(item.level).level : 0;
-
-    count++;
-
-    if (count > _settings.goodRepetitionsNo) {
-      item.level = DataModelSettings.doneLevel;
-    } else {
-      int delta0 = _getDayNo();
-      item.level = DaysLevelTuple(delta0, count).pack();
-    }
+    // do no use these items any more in this session
+    if (level >= DataModelSettings.levelsNo) _unused.add(item);
+    if (level == DataModelSettings.hiddenLevel) _unused.add(item);
   }
-}
-
-int _getDayNo() {
-  var now = DateTime.now();
-  var ref = DateTime(2022);
-  var delta0 = now.difference(ref).inDays;
-  return delta0;
 }
 
 class DataModelSettings {
-  final int levelsNo;
-  final int maxCapacity;
-  final int goodRepetitionsNo;
-
-  static int doneLevel = 100;
-  static int undoneLevel = -1;
-  static int hiddenLevel = -2;
-
-  DataModelSettings(this.levelsNo, this.maxCapacity, this.goodRepetitionsNo);
-}
-
-class DaysLevelTuple {
-  late int level;
-  late int dayNo;
-
-  DaysLevelTuple(this.dayNo, this.level);
-
-  DaysLevelTuple.unpack(int value) {
-    dayNo = value & 0xffff;
-    level = (value >> 16) & 0xffff;
-  }
-
-  int pack() {
-    return dayNo | (level << 16);
-  }
+  static int levelsNo = 4; // again, hard, good. easy
+  static int minExclude = 3; // how many times a used item will be excluded
+  static int maxCapacity = 25; // max pool size, "again" takes 4 places, "easy" or "undone" 1 place
+  static int undoneLevel = 0;
+  static int hiddenLevel = -1;
 }

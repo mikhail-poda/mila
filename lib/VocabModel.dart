@@ -44,7 +44,7 @@ class VocabModel extends ChangeNotifier {
   late String _sourceName;
 
   late List<Item> _items;
-  final DataModelSettings _settings = DataModelSettings(4, 40, 3);
+  final DataModelSettings _settings = DataModelSettings();
 
   bool _showHe = false;
   bool _showEng = false;
@@ -73,12 +73,12 @@ class VocabModel extends ChangeNotifier {
   int get count3 => _model
       .where((element) =>
           (element.level > DataModelSettings.undoneLevel) &&
-          (element.level < DataModelSettings.doneLevel))
+          (element.level < DataModelSettings.levelsNo))
       .length;
 
-  int get count4 => _model.where((element) => element.level > DataModelSettings.doneLevel).length;
+  int get count4 => _model.where((element) => element.level == DataModelSettings.levelsNo).length;
 
-  int get count5 => _model.where((element) => element.level == DataModelSettings.doneLevel).length;
+  int get count5 => _model.where((element) => element.level > DataModelSettings.levelsNo).length;
 
   String get he0 {
     if (!_showHe || _current == null) return "";
@@ -147,9 +147,9 @@ class VocabModel extends ChangeNotifier {
     _iterationMode = IterationMode.values[value];
 
     if (_iterationMode == IterationMode.sequential) {
-      _model = SequentialDataModel(_items, _settings);
+      _model = SequentialDataModel(_items);
     } else {
-      _model = RandomDataModel(_items, _settings);
+      _model = RandomDataModel(_items);
     }
   }
 

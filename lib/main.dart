@@ -4,7 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:mila/WebSerializer.dart';
 import 'package:mila/WebSource.dart';
 import 'ISerializer.dart';
-import 'Providers.dart';
+import 'Constants.dart';
 import 'SourcesView.dart';
 
 void main() async {
