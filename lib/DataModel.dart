@@ -16,14 +16,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   Item? nextItem(Item? current);
 
-  void setLevel(Item item, int level) {
-    if (level < DataModelSettings.levelsNo || item.level < DataModelSettings.levelsNo) {
-      item.level = level;
-    } else {
-      item.level++;
-    }
-    item.lastUse = DateTime.now();
-  }
+  void setLevel(Item item, int level);
 }
 
 class SequentialDataModel extends AbstractDataModel {
@@ -36,20 +29,32 @@ class SequentialDataModel extends AbstractDataModel {
     var ind = _index++;
     return _items[ind % _items.length];
   }
+
+  @override
+  void setLevel(Item item, int level) {
+    if (level < DataModelSettings.levelsNo || item.level < DataModelSettings.levelsNo) {
+      item.level = level;
+    }
+    item.lastUse = DateTime.now();
+  }
 }
 
 class RandomDataModel extends AbstractDataModel {
   final _random = Random();
   final _last = Queue<Item>();
   final _unused = HashSet<Item>();
-  final _now = DateTime.now();
+  var _now = DateTime.now();
 
   RandomDataModel(List<Item> items) : super(items) {
-    for (var item in items) {
+    _reset();
+  }
+
+  void _reset() {
+    for (var item in _items) {
       if (item.level == DataModelSettings.hiddenLevel) {
         _unused.add(item);
       } else {
-        var diff = item.level - DataModelSettings.levelsNo;
+        var diff = item.level - DataModelSettings.maxLevel;
         if (diff < 0) continue;
 
         var days = pow(2, diff) as int;
@@ -62,6 +67,12 @@ class RandomDataModel extends AbstractDataModel {
 
   @override
   Item? nextItem(Item? current) {
+    // once per hour reload easy (done) items
+    if (_now.add(const Duration(hours: 1)).isBefore(DateTime.now())) {
+      _now = DateTime.now();
+      _reset();
+    }
+
     if (current != null) _last.addFirst(current);
     if (_last.length > DataModelSettings.minExclude) _last.removeLast();
 
@@ -74,22 +85,18 @@ class RandomDataModel extends AbstractDataModel {
         .toList();
 
     if (items.isEmpty) {
-      // TODO: go thru the last
-      return null;
+      return _getRandomItem(_items);
     }
 
     var list = <Item>[];
 
     for (var item in items) {
-      var num = max(1, 1 + DataModelSettings.levelsNo - item.level);
+      var num = max(1, 1 + DataModelSettings.maxLevel - item.level);
       list.addAll(List.filled(num, item));
       if (list.length > DataModelSettings.maxCapacity) break;
     }
 
-    var next = _getRandomItem(list);
-    if (next != null) return next;
-
-    return next;
+    return _getRandomItem(list);
   }
 
   Item? _getRandomItem(List<Item> items) {
@@ -101,18 +108,28 @@ class RandomDataModel extends AbstractDataModel {
 
   @override
   void setLevel(Item item, int level) {
-    super.setLevel(item, level);
+    if (level == DataModelSettings.maxLevel && item.level == DataModelSettings.undoneLevel) {
+      item.level = DataModelSettings.maxLevel + 3;
+    } else if (level < DataModelSettings.maxLevel || item.level < DataModelSettings.maxLevel) {
+      item.level = level;
+    } else {
+      item.level++;
+    }
+    item.lastUse = DateTime.now();
 
     // do no use these items any more in this session
-    if (level >= DataModelSettings.levelsNo) _unused.add(item);
+    if (level >= DataModelSettings.maxLevel) _unused.add(item);
     if (level == DataModelSettings.hiddenLevel) _unused.add(item);
   }
 }
 
 class DataModelSettings {
-  static int levelsNo = 4; // again, hard, good. easy
-  static int minExclude = 3; // how many times a used item will be excluded
-  static int maxCapacity = 25; // max pool size, "again" takes 4 places, "easy" or "undone" 1 place
-  static int undoneLevel = 0;
-  static int hiddenLevel = -1;
+  static const levels = ["Again", "Hard", "Good", "Easy"];
+
+  static const levelsNo = 4;
+  static const maxLevel = 4;
+  static const minExclude = 4; // how many times a used item will be excluded
+  static const maxCapacity = 30; // max pool size, "again" takes 4 places, "easy" or "undone" 1 pl.
+  static const undoneLevel = 0;
+  static const hiddenLevel = -1;
 }

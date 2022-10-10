@@ -5,7 +5,7 @@ import 'Library.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class WebSerializer implements ISerializer {
-  static const _levBox = 'level.2';
+  static const _levBox = 'level.1';
   static const _txtBox = 'text.1';
 
   final _formatter = DateFormat('yyyy.MM;dd');

@@ -8,6 +8,8 @@ import 'package:mila/Item.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'DataModel.dart';
+import 'Library.dart';
 import 'SourcesView.dart';
 import 'VocabModel.dart';
 import 'main.dart';
@@ -159,8 +161,8 @@ class VocabView extends ConsumerWidget {
           launchUrlString(link);
         },
         child: Text(name,
-            textScaleFactor: 3.5,
-            style: const TextStyle(color: Colors.black26, fontWeight: FontWeight.bold)));
+            textScaleFactor: hasHebrew(name) ? 3.5 : 3.75, // bigger fonts for latin
+            style: const TextStyle(color: Colors.black12, fontWeight: FontWeight.bold)));
   }
 
   Widget showStat(int number, IconData icon, Color color) {
@@ -243,6 +245,7 @@ class VocabView extends ConsumerWidget {
     var model = ref.watch(vocabProvider);
     var val = AppConfig.blockWidth / 3;
     var textScaleFactor = max(min(2.0, val), 1.0);
+    const textStyle = TextStyle(fontWeight: FontWeight.w300);
 
     return ButtonBar(
       alignment: MainAxisAlignment.center,
@@ -254,58 +257,30 @@ class VocabView extends ConsumerWidget {
                 label: const Text(
                   "           Show           ",
                   textScaleFactor: 1.75,
-                  style: TextStyle(fontWeight: FontWeight.w300),
+                  style: textStyle,
                 ),
               )
             ]
           : <Widget>[
-              /*FloatingActionButton(
-                backgroundColor: Colors.white,
-                heroTag: 2,
-                onPressed: () => model.nextItem(DataModelSettings.omitLevel),
-                child: const Text("Hide", style: TextStyle(color: Colors.grey)),
-              ),*/
-              FloatingActionButton.extended(
-                backgroundColor: Colors.red,
-                heroTag: 3,
-                onPressed: () => model.nextItem(1),
-                label: Text(
-                  "Again",
-                  textScaleFactor: textScaleFactor,
-                  style: TextStyle(fontWeight: FontWeight.w300),
-                ),
-              ),
-              FloatingActionButton.extended(
-                backgroundColor: Colors.orange,
-                heroTag: 4,
-                onPressed: () => model.nextItem(2),
-                label: Text(
-                  "Hard",
-                  textScaleFactor: textScaleFactor,
-                  style: TextStyle(fontWeight: FontWeight.w300),
-                ),
-              ),
-              FloatingActionButton.extended(
-                backgroundColor: Colors.lightBlueAccent,
-                heroTag: 5,
-                onPressed: () => model.nextItem(3),
-                label: Text(
-                  "Good",
-                  textScaleFactor: textScaleFactor,
-                  style: TextStyle(fontWeight: FontWeight.w300),
-                ),
-              ),
-              FloatingActionButton.extended(
-                backgroundColor: Colors.green,
-                heroTag: 6,
-                onPressed: () => model.nextItem(4),
-                label: Text(
-                  "Easy",
-                  textScaleFactor: textScaleFactor,
-                  style: TextStyle(fontWeight: FontWeight.w300),
-                ),
-              ),
+              customButton(model, textScaleFactor, textStyle, 0, Colors.red),
+              customButton(model, textScaleFactor, textStyle, 1, Colors.orange),
+              customButton(model, textScaleFactor, textStyle, 2, Colors.lightBlueAccent),
+              customButton(model, textScaleFactor, textStyle, 3, Colors.green),
             ],
+    );
+  }
+
+  FloatingActionButton customButton(
+      VocabModel model, double textScaleFactor, TextStyle textStyle, int ind, Color color) {
+    return FloatingActionButton.extended(
+      backgroundColor: color,
+      heroTag: ind + 2,
+      onPressed: () => model.nextItem(ind + 1),
+      label: Text(
+        DataModelSettings.levels[ind],
+        textScaleFactor: textScaleFactor,
+        style: textStyle,
+      ),
     );
   }
 }

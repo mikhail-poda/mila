@@ -7,3 +7,7 @@ String haserNikud(String str) {
   str = String.fromCharCodes(runes);
   return str;
 }
+
+bool hasHebrew(String str) {
+  return str.runes.any((char) => (char >= _aleph && char <= _tav));
+}
