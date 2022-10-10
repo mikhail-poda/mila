@@ -57,7 +57,7 @@ General:
   - String:translation
 - show current dictionary as vocabulary source, resolve numeric level values to text
 - sanitize vocabulary:
-  - check multiple entries
+  - check multiple entries, show an extra view
 - copy to clipboard on click
 - algorithm using “growth” on each iteration, negative value after being answered
 - better colorful progress view:
