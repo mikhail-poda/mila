@@ -49,7 +49,12 @@ class VocabModel extends ChangeNotifier {
   bool _showHe = false;
   bool _showEng = false;
 
+  List<Item> get repetitions => _repetitions;
+  final _repetitions = <Item>[];
+
   VocabModel(String fileName, List<Item> items, ISerializer serializer) {
+    _findRepetitions(items);
+
     _sourceName = p.basename(fileName);
     _items = items;
 
@@ -58,6 +63,20 @@ class VocabModel extends ChangeNotifier {
 
     setIterationMode(_iterationMode.index);
     _serializer = serializer;
+  }
+
+  void _findRepetitions(List<Item> items) {
+    var hmap = <String, Item>{};
+
+    for (var item in items) {
+      var key = haserNikud(item.he0);
+      if (hmap.containsKey(key)) {
+        _repetitions.add(hmap[key]!);
+        _repetitions.add(item);
+      } else {
+        hmap[key] = item;
+      }
+    }
   }
 
   //---------------------------------[ properties ]---------------------------------

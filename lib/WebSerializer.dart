@@ -5,10 +5,10 @@ import 'Library.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class WebSerializer implements ISerializer {
-  static const _levBox = 'level.1';
-  static const _txtBox = 'text.1';
+  static const _txtBox = 'text.3';
+  static const _levBox = 'level.3';
 
-  final _formatter = DateFormat('yyyy.MM;dd');
+  final _formatter = DateFormat('yyyy.MM.dd');
   final _levels = Hive.box<int>(_levBox);
   final _text = Hive.box<String>(_txtBox);
 
@@ -33,13 +33,21 @@ class WebSerializer implements ISerializer {
 
   @override
   void push(Item item) async {
-    var hem = item.he0;
-    var heh = haserNikud(hem);
-
+    final heh = haserNikud(item.he0);
     final now = DateTime.now();
     final formatted = _formatter.format(now);
 
     _levels.put(heh, item.level);
-    _text.put(heh, '${item.he1}#${item.eng0}#$formatted');
+    _text.put(heh, '${item.he0}#${item.eng0}#$formatted');
+  }
+
+  @override
+  Stream<List<String>> loadVocabulary() async* {
+    for (var str in _text.values) {
+      final cell = str.split('#');
+      final name = haserNikud(cell[0]);
+      var level = _levels.get(name);
+      yield [cell[0], cell[1], '$level / ${cell[2]}', 'level / last seen'];
+    }
   }
 }

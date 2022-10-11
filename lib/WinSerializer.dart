@@ -5,17 +5,18 @@ import 'package:mila/WinSource.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
+import 'Constants.dart';
 import 'ISerializer.dart';
 
 typedef Kvp = Tuple2<String, int>;
 
 class WinSerializer implements ISerializer {
+  @override
+  Stream<List<String>> loadVocabulary() async* {
+    var file = p.join(WinSource.getPath(), serialName);
+    var lines = WinSource.loadAsync(file);
 
-  static Future<ISerializer> load(String dirName) async {
-    var file = p.join(dirName, "0. vocabulary.txt");
-    var lines = await WinSource.loadAsync(file).toList();
-
-    return WinSerializer(lines, file);
+    yield* lines;
   }
 
   late File _file;

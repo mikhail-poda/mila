@@ -7,10 +7,16 @@ import 'Constants.dart';
 import 'VocabView.dart';
 import 'main.dart';
 
-final vocabulariesListProvider =
-    FutureProvider<List<String>>((ref) async => GetIt.I<ISource>().getVocabularies());
-
+final vocabulariesListProvider = FutureProvider<List<String>>((ref) async => getVocabularies());
 final vocabularyNameProvider = StateProvider<String>((ref) => "");
+
+Future<List<String>> getVocabularies() async {
+  var list0 = await GetIt.I<ISource>().getVocabularies();
+  var list1 = list0.toList(); // add new item to a new list
+
+  list1.insert(0, serialName);
+  return list1;
+}
 
 class SourcesView extends ConsumerWidget {
   const SourcesView({Key? key}) : super(key: key);

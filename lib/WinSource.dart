@@ -9,10 +9,8 @@ import 'ISerializer.dart';
 class WinSource implements ISource {
   @override
   Future<List<String>> getVocabularies() async {
-    var envVars = Platform.environment;
-    var home = envVars['UserProfile'];
-    var path = p.join(home!, "mila");
-    var dir = Directory(path);
+    final path = getPath();
+    final dir = Directory(path);
 
     var hasDir = await dir.exists();
     if (!hasDir) {
@@ -27,6 +25,13 @@ class WinSource implements ISource {
     }
 
     return dir.list().map((e) => e.path).toList();
+  }
+
+  static String getPath() {
+    var envVars = Platform.environment;
+    var home = envVars['UserProfile'];
+    var path = p.join(home!, "mila");
+    return path;
   }
 
   @override

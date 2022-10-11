@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
@@ -8,6 +9,7 @@ import 'package:mila/Item.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'Constants.dart';
 import 'DataModel.dart';
 import 'Library.dart';
 import 'SourcesView.dart';
@@ -17,7 +19,10 @@ import 'main.dart';
 final fileResultProvider = FutureProvider<VocabModel>((ref) async {
   final source = ref.watch(vocabularyNameProvider);
 
-  var lines = GetIt.I<ISource>().loadVocabulary(source);
+  var lines = source == serialName
+      ? GetIt.I<ISerializer>().loadVocabulary()
+      : GetIt.I<ISource>().loadVocabulary(source);
+
   final items = await lines.map((e) => Item(e)).toList();
   final serializer = GetIt.I<ISerializer>();
 
@@ -50,21 +55,34 @@ class VocabView extends ConsumerWidget {
   Scaffold _buildScaffold(BuildContext context, WidgetRef ref) {
     var model = ref.watch(vocabProvider);
     model.start();
+    var num = model.repetitions.distinct((e) => haserNikud(e.he0)).length;
 
-    return Scaffold(
-        appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
-          Padding(
-              padding: const EdgeInsets.only(right: 20.0),
-              child: GestureDetector(
-                onTap: () => _settings(context, model),
-                child: const Icon(
-                  Icons.menu,
-                  size: 26.0,
-                ),
-              )),
-        ]),
-        body: _body(ref),
-        bottomNavigationBar: _buttons(ref));
+    if (num == 0) {
+      return Scaffold(
+          appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
+            Padding(
+                padding: const EdgeInsets.only(right: 20.0),
+                child: GestureDetector(
+                  onTap: () => _settings(context, model),
+                  child: const Icon(
+                    Icons.menu,
+                    size: 26.0,
+                  ),
+                )),
+          ]),
+          body: _body(model),
+          bottomNavigationBar: _buttons(model));
+    } else {
+      return Scaffold(
+          appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉')),
+          body: _repetitionsView(model.repetitions),
+          bottomNavigationBar: Text(
+            'Error: $num repetitions found.',
+            textScaleFactor: 2,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+          ));
+    }
   }
 
   void _settings(BuildContext context, VocabModel model) {
@@ -110,8 +128,7 @@ class VocabView extends ConsumerWidget {
         });
   }
 
-  Widget _body(WidgetRef ref) {
-    var model = ref.watch(vocabProvider);
+  Widget _body(VocabModel model) {
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -161,7 +178,7 @@ class VocabView extends ConsumerWidget {
           launchUrlString(link);
         },
         child: Text(name,
-            textScaleFactor: hasHebrew(name) ? 3.5 : 3.75, // bigger fonts for latin
+            textScaleFactor: hasHebrew(name) ? 3.5 : 4, // bigger fonts for latin
             style: const TextStyle(color: Colors.black12, fontWeight: FontWeight.bold)));
   }
 
@@ -241,8 +258,7 @@ class VocabView extends ConsumerWidget {
     ];
   }
 
-  Widget _buttons(WidgetRef ref) {
-    var model = ref.watch(vocabProvider);
+  Widget _buttons(VocabModel model) {
     var val = AppConfig.blockWidth / 3;
     var textScaleFactor = max(min(2.0, val), 1.0);
     const textStyle = TextStyle(fontWeight: FontWeight.w300);
@@ -282,5 +298,21 @@ class VocabView extends ConsumerWidget {
         style: textStyle,
       ),
     );
+  }
+
+  Widget _repetitionsView(List<Item> repetitions) {
+    return Center(
+        child: ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: repetitions.length,
+            itemBuilder: (BuildContext context, int index) {
+              return Material(
+                  child: ListTile(
+                      title: Text(
+                '${repetitions[index].he0} - ${repetitions[index].eng0}',
+                textScaleFactor: 1.5,
+                style: const TextStyle(fontWeight: FontWeight.w300),
+              )));
+            }));
   }
 }
