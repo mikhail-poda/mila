@@ -60,15 +60,26 @@ class VocabView extends ConsumerWidget {
     if (num == 0) {
       return Scaffold(
           appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
-            Padding(
-                padding: const EdgeInsets.only(right: 20.0),
-                child: GestureDetector(
-                  onTap: () => _settings(context, model),
-                  child: const Icon(
-                    Icons.menu,
-                    size: 26.0,
-                  ),
-                )),
+            PopupMenuButton<int>(
+              onSelected: (v) => _menuSelection(v, context, model),
+              child: const Padding(
+                  padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
+              itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
+                const PopupMenuItem<int>(
+                  value: 1,
+                  enabled: false,
+                  child: Text('Download vocabulary'),
+                ),
+                const PopupMenuItem<int>(value: 2, child: Text('Settings')),
+                const PopupMenuItem<int>(value: 3, child: Text('About')),
+                PopupMenuItem<int>(
+                    value: 4,
+                    enabled: model.isComplete,
+                    child: const Text('Move item to the end of the list')),
+                PopupMenuItem<int>(
+                    value: 5, enabled: model.isComplete, child: const Text('Hide item')),
+              ],
+            ),
           ]),
           body: _body(model),
           bottomNavigationBar: _buttons(model));
@@ -98,7 +109,7 @@ class VocabView extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text("Iteration Order:",
-                          textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
+                          textScaleFactor: 1.75, style: TextStyle(fontWeight: FontWeight.w300)),
                       ToggleSwitch(
                         totalSwitches: 2,
                         labels: const ['Sequential', 'Random'],
@@ -107,7 +118,7 @@ class VocabView extends ConsumerWidget {
                       ),
                       const Text(""),
                       const Text("Display Order:",
-                          textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
+                          textScaleFactor: 1.75, style: TextStyle(fontWeight: FontWeight.w300)),
                       ToggleSwitch(
                         totalSwitches: 4,
                         labels: const ['He', 'Eng', 'Random', 'Both'],
@@ -116,13 +127,44 @@ class VocabView extends ConsumerWidget {
                       ),
                       const Text(""),
                       const Text("Show Nikud:",
-                          textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.w100)),
+                          textScaleFactor: 1.75, style: TextStyle(fontWeight: FontWeight.w300)),
                       ToggleSwitch(
                         totalSwitches: 2,
                         labels: const ['א', '∵'],
                         onToggle: (index) => model.setShowNikud(index!),
                         initialLabelIndex: model.showNikud ? 1 : 0,
                       ),
+                    ],
+                  )));
+        });
+  }
+
+  void _about(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                          "Mikhail Poda\r\nOctober 2022\r\nBraunschweig, Germany\r\n",
+                          textScaleFactor: 1.75,
+                          style: TextStyle(fontWeight: FontWeight.w300)),
+                      TextButton(
+                          onPressed: () {
+                            launchUrlString("mailto:mikhail.poda@gmail.com");
+                          },
+                          child: const Text(
+                            "mikhail.poda@gmail.com",
+                            textScaleFactor: 1.75,
+                            style:
+                                TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300),
+                          ))
                     ],
                   )));
         });
@@ -314,5 +356,12 @@ class VocabView extends ConsumerWidget {
                 style: const TextStyle(fontWeight: FontWeight.w300),
               )));
             }));
+  }
+
+  void _menuSelection(int value, BuildContext context, VocabModel model) {
+    if (value == 2) _settings(context, model);
+    if (value == 3) _about(context);
+    if (value == 4) model.nextItem(DataModelSettings.undoneLevel);
+    if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
   }
 }

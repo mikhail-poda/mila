@@ -32,7 +32,7 @@ class SequentialDataModel extends AbstractDataModel {
 
   @override
   void setLevel(Item item, int level) {
-    if (level < DataModelSettings.levelsNo || item.level < DataModelSettings.levelsNo) {
+    if (level < DataModelSettings.maxLevel || item.level < DataModelSettings.maxLevel) {
       item.level = level;
     }
     item.lastUse = DateTime.now();
@@ -120,6 +120,10 @@ class RandomDataModel extends AbstractDataModel {
     // do no use these items any more in this session
     if (level >= DataModelSettings.maxLevel) _unused.add(item);
     if (level == DataModelSettings.hiddenLevel) _unused.add(item);
+    if (level == DataModelSettings.undoneLevel) {
+      var ind = _items.indexOf(item);
+      _items.move(ind, 1, _items.length - 1);
+    }
   }
 }
 
