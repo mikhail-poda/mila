@@ -5,7 +5,6 @@ Similar to Anki but specifically for Hebrew
 
 ToDo:
 
-
 List:
 - prepare new lists
 - go through the lists, standardize:
@@ -20,13 +19,11 @@ List:
   - plural/phrase if not standard
   - attribute if not standard
 
-
 Tools:
 - check for repetitions
 - check for max length
 - add Ulpan, etc. links in row 7
 - add attribute for not standard items in row 8
-
 
 Not standard attributes:
 - nouns:
@@ -47,7 +44,6 @@ Not standard attributes:
   - no past/present/future
   - irregular vocalization
   - irregular conjugation
-
 
 General:
 - use Isar database for serializing vocabulary for each entry:
@@ -74,13 +70,11 @@ General:
   - about dialog with open email, GitHub link (all views)
   - download vocabulary (all views)
 
-
 Settings:
 - save settings to database
 - edit pool size
 - reorder dropdown: “natural” , “random” , “alphabetic aleph-tet” , “alphabetic a-z”, “easy first” , “hard first” , “unseen first”, “hidden first”
 - new iteration order “view” with “prev” and “next” buttons
-
 
 Links:
 - automatic:
@@ -93,8 +87,11 @@ tools:
   - Mark Niran
   - HebrewToday
 
-
 Multi-user:
 - connect to account
 - serialize settings to the cloud
 - load custom lists
+
+Problems:
+- serialization haser-nikud & words different by vocalization
+- learning of word groups
