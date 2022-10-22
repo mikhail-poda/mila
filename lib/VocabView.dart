@@ -157,7 +157,7 @@ class VocabView extends ConsumerWidget {
                           style: TextStyle(fontWeight: FontWeight.w300)),
                       TextButton(
                           onPressed: () {
-                            launchUrlString("mailto:mikhail.poda@gmail.com");
+                            launchUrlString("mailto:mikhail.poda@gmail.com"); //https://github.com/mikhail-poda/mila
                           },
                           child: const Text(
                             "mikhail.poda@gmail.com",

@@ -12,6 +12,9 @@ abstract class AbstractDataModel with IterableMixin<Item> {
   Item operator [](int index) => _items[index];
 
   @override
+  int get length => _items.length;
+
+  @override
   Iterator<Item> get iterator => _items.iterator;
 
   Item? nextItem(Item? current);
@@ -42,17 +45,19 @@ class SequentialDataModel extends AbstractDataModel {
 class RandomDataModel extends AbstractDataModel {
   final _random = Random();
   final _last = Queue<Item>();
-  final _unused = HashSet<Item>();
-  var _now = DateTime.now();
+  final _excluded = HashSet<Item>();
+  DateTime? _lastReset;
 
   RandomDataModel(List<Item> items) : super(items) {
     _reset();
   }
 
   void _reset() {
+    _lastReset = DateTime.now();
+
     for (var item in _items) {
       if (item.level == DataModelSettings.hiddenLevel) {
-        _unused.add(item);
+        _excluded.add(item);
       } else {
         var diff = item.level - DataModelSettings.maxLevel;
         if (diff < 0) continue;
@@ -60,7 +65,7 @@ class RandomDataModel extends AbstractDataModel {
         var days = pow(2, diff) as int;
         var next = item.lastUse!.add(Duration(days: days));
 
-        if (next.isAfter(_now)) _unused.add(item);
+        if (next.isAfter(_lastReset!)) _excluded.add(item);
       }
     }
   }
@@ -68,8 +73,7 @@ class RandomDataModel extends AbstractDataModel {
   @override
   Item? nextItem(Item? current) {
     // once per hour reload easy (done) items
-    if (_now.add(const Duration(hours: 1)).isBefore(DateTime.now())) {
-      _now = DateTime.now();
+    if (_lastReset!.add(const Duration(hours: 1)).isBefore(DateTime.now())) {
       _reset();
     }
 
@@ -79,7 +83,7 @@ class RandomDataModel extends AbstractDataModel {
     var hset = HashSet.of(_last);
 
     var items = _items
-        .where((item) => !_unused.contains(item))
+        .where((item) => !_excluded.contains(item))
         .where((item) => !hset.contains(item))
         .orderByDescending((item) => item.level)
         .toList();
@@ -118,11 +122,11 @@ class RandomDataModel extends AbstractDataModel {
     item.lastUse = DateTime.now();
 
     // do no use these items any more in this session
-    if (level >= DataModelSettings.maxLevel) _unused.add(item);
-    if (level == DataModelSettings.hiddenLevel) _unused.add(item);
+    if (level >= DataModelSettings.maxLevel) _excluded.add(item);
+    if (level == DataModelSettings.hiddenLevel) _excluded.add(item);
     if (level == DataModelSettings.undoneLevel) {
-      var ind = _items.indexOf(item);
-      _items.move(ind, 1, _items.length - 1);
+      _items.remove(item);
+      _items.add(item);
     }
   }
 }
