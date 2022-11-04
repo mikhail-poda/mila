@@ -17,9 +17,9 @@ abstract class AbstractDataModel with IterableMixin<Item> {
   @override
   Iterator<Item> get iterator => _items.iterator;
 
-  Item? nextItem(Item? current);
+  Item nextItem(Item? current);
 
-  void setLevel(Item item, int level);
+  void setLevel(Item item, int value);
 }
 
 class SequentialDataModel extends AbstractDataModel {
@@ -28,14 +28,15 @@ class SequentialDataModel extends AbstractDataModel {
   SequentialDataModel(List<Item> items) : super(items);
 
   @override
-  Item? nextItem(Item? current) {
+  Item nextItem(Item? current) {
     var ind = _index++;
     return _items[ind % _items.length];
   }
 
   @override
-  void setLevel(Item item, int level) {
-    if (level < DataModelSettings.maxLevel || item.level < DataModelSettings.maxLevel) {
+  void setLevel(Item item, int value) {
+    var level = getLevel(item.level, value);
+    if (item.level < DataModelSettings.maxLevel) {
       item.level = level;
     }
     item.lastUse = DateTime.now();
@@ -43,16 +44,17 @@ class SequentialDataModel extends AbstractDataModel {
 }
 
 class RandomDataModel extends AbstractDataModel {
-  final _random = Random();
   final _last = Queue<Item>();
+  final _random = Random();
   final _excluded = HashSet<Item>();
+
   DateTime? _lastReset;
 
   RandomDataModel(List<Item> items) : super(items) {
-    _reset();
+    _updateExcludedList();
   }
 
-  void _reset() {
+  void _updateExcludedList() {
     _lastReset = DateTime.now();
 
     for (var item in _items) {
@@ -71,10 +73,10 @@ class RandomDataModel extends AbstractDataModel {
   }
 
   @override
-  Item? nextItem(Item? current) {
+  Item nextItem(Item? current) {
     // once per hour reload easy (done) items
     if (_lastReset!.add(const Duration(hours: 1)).isBefore(DateTime.now())) {
-      _reset();
+      _updateExcludedList();
     }
 
     if (current != null) _last.addFirst(current);
@@ -103,41 +105,61 @@ class RandomDataModel extends AbstractDataModel {
     return _getRandomItem(list);
   }
 
-  Item? _getRandomItem(List<Item> items) {
-    if (items.isEmpty) return null;
+  Item _getRandomItem(List<Item> items) {
     var size = items.length;
     var ind = _random.nextInt(size);
     return items[ind];
   }
 
   @override
-  void setLevel(Item item, int level) {
-    if (level == DataModelSettings.maxLevel && item.level == DataModelSettings.undoneLevel) {
-      item.level = DataModelSettings.maxLevel + 3;
-    } else if (level < DataModelSettings.maxLevel || item.level < DataModelSettings.maxLevel) {
-      item.level = level;
-    } else {
-      item.level++;
-    }
+  void setLevel(Item item, int value) {
+    item.level = getLevel(item.level, value);
     item.lastUse = DateTime.now();
 
     // do no use these items any more in this session
-    if (level >= DataModelSettings.maxLevel) _excluded.add(item);
-    if (level == DataModelSettings.hiddenLevel) _excluded.add(item);
-    if (level == DataModelSettings.undoneLevel) {
-      _items.remove(item);
-      _items.add(item);
+    if (item.level >= DataModelSettings.maxLevel) _excluded.add(item);
+    if (item.level == DataModelSettings.hiddenLevel) _excluded.add(item);
+    if (item.level == DataModelSettings.tailLevel && value == DataModelSettings.tailLevel) {
+      _excluded.add(item);
     }
   }
 }
 
 class DataModelSettings {
-  static const levels = ["Again", "Hard", "Good", "Easy"];
+  static const levels = ["Again", "Good", "Easy"];
 
-  static const levelsNo = 4;
-  static const maxLevel = 4;
+  static const value1 = 1;
+  static const value2 = 2;
+  static const value3 = 3;
+
+  static const maxLevel = 5;
   static const minExclude = 4; // how many times a used item will be excluded
   static const maxCapacity = 30; // max pool size, "again" takes 4 places, "easy" or "undone" 1 pl.
   static const undoneLevel = 0;
-  static const hiddenLevel = -1;
+  static const tailLevel = -1;
+  static const hiddenLevel = -2;
+}
+
+int getLevel(int level, int value) {
+  if (value == DataModelSettings.undoneLevel ||
+      value == DataModelSettings.hiddenLevel ||
+      value == DataModelSettings.tailLevel) {
+    return value;
+  }
+
+  if (value == DataModelSettings.value1) {
+    return level < 3 ? 1 : 2;
+  }
+
+  if (value == DataModelSettings.value2) {
+    return level < 3 ? 3 : 4;
+  }
+
+  return level == 0
+      ? 8
+      : level < 3
+          ? 4
+          : level < 5
+              ? 5
+              : (level + 1);
 }

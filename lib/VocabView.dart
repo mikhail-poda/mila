@@ -12,11 +12,18 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'Constants.dart';
 import 'DataModel.dart';
 import 'Library.dart';
+import 'Result.dart';
 import 'SourcesView.dart';
 import 'VocabModel.dart';
 import 'main.dart';
 
-final fileResultProvider = FutureProvider<VocabModel>((ref) async {
+typedef ModelOrError = Result<VocabModel, SourceError>;
+
+const lightFont = TextStyle(fontWeight: FontWeight.w300);
+const boldFont = TextStyle(fontWeight: FontWeight.bold);
+const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
+
+final fileResultProvider = FutureProvider<ModelOrError>((ref) async {
   final source = ref.watch(vocabularyNameProvider);
 
   var lines = source == serialName
@@ -24,13 +31,16 @@ final fileResultProvider = FutureProvider<VocabModel>((ref) async {
       : GetIt.I<ISource>().loadVocabulary(source);
 
   final items = await lines.map((e) => Item(e)).toList();
-  final serializer = GetIt.I<ISerializer>();
+  final err = SourceError.any(source, items);
+  if (err != null) return ModelOrError.error(err);
 
-  return VocabModel(source, items, serializer);
+  final serializer = GetIt.I<ISerializer>();
+  return ModelOrError.value(VocabModel(source, items, serializer));
 });
 
 final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
-  return ref.watch(fileResultProvider).value!;
+  var model = ref.watch(fileResultProvider).value;
+  return model!.value!;
 });
 
 class VocabView extends ConsumerWidget {
@@ -47,53 +57,60 @@ class VocabView extends ConsumerWidget {
                   _.error.toString(),
                   style: const TextStyle(color: Colors.red),
                 ),
-            data: (_) {
-              return _buildScaffold(context, ref);
+            data: (asyncData) {
+              var result = asyncData.value;
+              return result.hasValue
+                  ? _buildScaffold(context, ref)
+                  : _showError(context, ref, result.error!);
             }));
   }
 
   Scaffold _buildScaffold(BuildContext context, WidgetRef ref) {
     var model = ref.watch(vocabProvider);
-    model.start();
-    var num = model.repetitions.distinct((e) => haserNikud(e.he0)).length;
+    model.initialize();
 
-    if (num == 0) {
-      return Scaffold(
-          appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
-            PopupMenuButton<int>(
-              onSelected: (v) => _menuSelection(v, context, model),
-              child: const Padding(
-                  padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
-              itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
-                const PopupMenuItem<int>(
-                  value: 1,
-                  enabled: false,
-                  child: Text('Download vocabulary'),
-                ),
-                const PopupMenuItem<int>(value: 2, child: Text('Settings')),
-                const PopupMenuItem<int>(value: 3, child: Text('About')),
-                PopupMenuItem<int>(
-                    value: 4,
-                    enabled: model.isComplete,
-                    child: const Text('Move item to the end of the list')),
-                PopupMenuItem<int>(
-                    value: 5, enabled: model.isComplete, child: const Text('Hide item')),
-              ],
-            ),
-          ]),
-          body: _body(model),
-          bottomNavigationBar: _buttons(model));
-    } else {
-      return Scaffold(
-          appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉')),
-          body: _repetitionsView(model.repetitions),
-          bottomNavigationBar: Text(
-            'Error: $num repetitions found.',
-            textScaleFactor: 2,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-          ));
-    }
+    return Scaffold(
+        appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
+          _menu(context, model),
+        ]),
+        body: _body(context, model),
+        bottomNavigationBar: _buttons(model));
+  }
+
+  Scaffold _showError(BuildContext context, WidgetRef ref, SourceError error) {
+    return Scaffold(
+        appBar: AppBar(title: Text('${error.name} 〈${error.length}〉')),
+        body: Text(error.description, textScaleFactor: 2, style: lightFont),
+        bottomNavigationBar: Text(
+          error.message,
+          textScaleFactor: 2,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+        ));
+  }
+
+  PopupMenuButton<int> _menu(BuildContext context, VocabModel model) {
+    return PopupMenuButton<int>(
+      onSelected: (v) => _menuSelection(v, context, model),
+      child:
+          const Padding(padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
+      itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
+        const PopupMenuItem<int>(
+          value: 1,
+          enabled: false,
+          child: Text('Download vocabulary'),
+        ),
+        const PopupMenuItem<int>(value: 2, child: Text('Settings')),
+        const PopupMenuItem<int>(value: 3, child: Text('About')),
+        PopupMenuItem<int>(
+            value: 4,
+            enabled: model.isComplete,
+            child: const Text('Move item to the end of the list')),
+        PopupMenuItem<int>(value: 5, enabled: model.isComplete, child: const Text('Hide item')),
+        PopupMenuItem<int>(
+            value: 6, enabled: model.hasPrevious, child: const Text('Previous item')),
+      ],
+    );
   }
 
   void _settings(BuildContext context, VocabModel model) {
@@ -108,8 +125,7 @@ class VocabView extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Iteration Order:",
-                          textScaleFactor: 1.75, style: TextStyle(fontWeight: FontWeight.w300)),
+                      const Text("Iteration Order:", textScaleFactor: 1.75, style: lightFont),
                       ToggleSwitch(
                         totalSwitches: 2,
                         labels: const ['Sequential', 'Random'],
@@ -117,8 +133,7 @@ class VocabView extends ConsumerWidget {
                         initialLabelIndex: model.iterationMode.index,
                       ),
                       const Text(""),
-                      const Text("Display Order:",
-                          textScaleFactor: 1.75, style: TextStyle(fontWeight: FontWeight.w300)),
+                      const Text("Display Order:", textScaleFactor: 1.75, style: lightFont),
                       ToggleSwitch(
                         totalSwitches: 4,
                         labels: const ['He', 'Eng', 'Random', 'Both'],
@@ -126,8 +141,7 @@ class VocabView extends ConsumerWidget {
                         initialLabelIndex: model.displayMode.index,
                       ),
                       const Text(""),
-                      const Text("Show Nikud:",
-                          textScaleFactor: 1.75, style: TextStyle(fontWeight: FontWeight.w300)),
+                      const Text("Show Nikud:", textScaleFactor: 1.75, style: lightFont),
                       ToggleSwitch(
                         totalSwitches: 2,
                         labels: const ['א', '∵'],
@@ -151,26 +165,35 @@ class VocabView extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                          "Mikhail Poda\r\nOctober 2022\r\nBraunschweig, Germany\r\n",
-                          textScaleFactor: 1.75,
-                          style: TextStyle(fontWeight: FontWeight.w300)),
+                      const Text("Mikhail Poda\r\nOctober 2022\r\nBraunschweig, Germany\r\n",
+                          textScaleFactor: 1.75, style: lightFont),
                       TextButton(
-                          onPressed: () {
-                            launchUrlString("mailto:mikhail.poda@gmail.com"); //https://github.com/mikhail-poda/mila
-                          },
+                          onPressed: () => launchUrlString(uri),
+                          child: const Text(
+                            "vocabulary source",
+                            textScaleFactor: 1.75,
+                            style: linkFont,
+                          )),
+                      TextButton(
+                          onPressed: () => launchUrlString("mailto:mikhail.poda@gmail.com"),
                           child: const Text(
                             "mikhail.poda@gmail.com",
                             textScaleFactor: 1.75,
-                            style:
-                                TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300),
-                          ))
+                            style: linkFont,
+                          )),
+                      TextButton(
+                          onPressed: () => launchUrlString("https://github.com/mikhail-poda/mila"),
+                          child: const Text(
+                            "https://github.com/mikhail-poda/mila",
+                            textScaleFactor: 1.75,
+                            style: linkFont,
+                          )),
                     ],
                   )));
         });
   }
 
-  Widget _body(VocabModel model) {
+  Widget _body(BuildContext context, VocabModel model) {
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -178,15 +201,15 @@ class VocabView extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                showStat(model.count1, Icons.do_disturb_on_outlined, Colors.black38),
+                statWidget(context, model.count1, Icons.do_disturb_on_outlined, Colors.black38),
                 const Expanded(child: Text("")),
-                showStat(model.count2, Icons.hourglass_empty_sharp, Colors.black45),
+                statWidget(context, model.count2, Icons.hourglass_empty_sharp, Colors.black45),
                 const Expanded(child: Text("")),
-                showStat(model.count3, Icons.repeat, Colors.orange),
+                statWidget(context, model.count3, Icons.repeat, Colors.orange),
                 const Expanded(child: Text("")),
-                showStat(model.count4, Icons.done, Colors.green),
+                statWidget(context, model.count4, Icons.done, Colors.green),
                 const Expanded(child: Text("")),
-                showStat(model.count5, Icons.done_all, Colors.lightGreen),
+                statWidget(context, model.count5, Icons.done_all, Colors.lightGreen),
               ],
             ),
             Expanded(
@@ -200,12 +223,17 @@ class VocabView extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Expanded(child: Text("")),
-                      textLink('פ', 'https://www.pealim.com/search/?q=${model.he0}'),
+                      textLink('פ', 'https://www.pealim.com/search/?q=${haserNikud(model.he0)}'),
                       const Expanded(child: Text("")),
-                      textLink('מ', 'https://www.morfix.co.il/${model.he0}'),
+                      textLink('מ״סק', 'https://www.morfix.co.il/${haserNikud(model.he0)}'),
+                      const Expanded(child: Text("")),
+                      textLink('מ״ג', 'https://milog.co.il/${haserNikud(model.he0)}'),
+                      const Expanded(child: Text("")),
+                      textLink('g',
+                          'https://translate.google.com/?sl=iw&tl=en&text=${haserNikud(model.he0)}'),
                       const Expanded(child: Text("")),
                       textLink('r',
-                          'https://context.reverso.net/translation/hebrew-english/${model.he0}'),
+                          'https://context.reverso.net/translation/hebrew-english/${haserNikud(model.he0)}'),
                       const Expanded(child: Text(""))
                     ],
                   )
@@ -216,20 +244,19 @@ class VocabView extends ConsumerWidget {
 
   TextButton textLink(String name, String link) {
     return TextButton(
-        onPressed: () {
-          launchUrlString(link);
-        },
+        onPressed: () => launchUrlString(link),
         child: Text(name,
-            textScaleFactor: hasHebrew(name) ? 3.5 : 4, // bigger fonts for latin
+            textScaleFactor: hasHebrew(name) ? 2.5 : 3.0, // bigger fonts for latin
             style: const TextStyle(color: Colors.black12, fontWeight: FontWeight.bold)));
   }
 
-  Widget showStat(int number, IconData icon, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 20),
-        Text(' $number', textScaleFactor: 1.5, style: TextStyle(color: color))
-      ],
+  Widget statWidget(BuildContext context, List<Item> items, IconData icon, Color color) {
+    return TextButton(
+      onPressed: () => statDisplay(context, items),
+      child: Row(children: <Widget>[
+        Icon(icon, size: 20, color: Colors.black54),
+        Text(' ${items.length}', textScaleFactor: 1.5, style: TextStyle(color: color))
+      ]),
     );
   }
 
@@ -239,26 +266,23 @@ class VocabView extends ConsumerWidget {
           ? Text(
               model.eng0,
               textScaleFactor: 2,
-              style: const TextStyle(fontWeight: FontWeight.w300),
+              style: lightFont,
             )
           : Text(
               model.he0,
               textScaleFactor: 2,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: boldFont,
               textDirection: TextDirection.rtl,
               overflow: TextOverflow.clip,
             )),
       const Text("_______________________________________"),
       (model.guessMode == GuessMode.eng
-          ? Text(model.he0,
-              textScaleFactor: 2,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              textDirection: TextDirection.rtl)
+          ? Text(model.he0, textScaleFactor: 2, style: boldFont, textDirection: TextDirection.rtl)
           : Text(
               model.eng0,
               textScaleFactor: 2,
               overflow: TextOverflow.clip,
-              style: const TextStyle(fontWeight: FontWeight.w300),
+              style: lightFont,
             )),
       const Text(""),
       const Text(""),
@@ -272,7 +296,7 @@ class VocabView extends ConsumerWidget {
                   model.eng1,
                   textScaleFactor: 1.75,
                   overflow: TextOverflow.clip,
-                  style: const TextStyle(fontWeight: FontWeight.w300),
+                  style: lightFont,
                 )
               ]
             : [
@@ -295,7 +319,7 @@ class VocabView extends ConsumerWidget {
         model.eng2,
         textScaleFactor: 1.75,
         overflow: TextOverflow.clip,
-        style: const TextStyle(fontWeight: FontWeight.w300),
+        style: lightFont,
       ),
     ];
   }
@@ -303,7 +327,6 @@ class VocabView extends ConsumerWidget {
   Widget _buttons(VocabModel model) {
     var val = AppConfig.blockWidth / 3;
     var textScaleFactor = max(min(2.0, val), 1.0);
-    const textStyle = TextStyle(fontWeight: FontWeight.w300);
 
     return ButtonBar(
       alignment: MainAxisAlignment.center,
@@ -315,53 +338,65 @@ class VocabView extends ConsumerWidget {
                 label: const Text(
                   "           Show           ",
                   textScaleFactor: 1.75,
-                  style: textStyle,
+                  style: lightFont,
                 ),
               )
             ]
           : <Widget>[
-              customButton(model, textScaleFactor, textStyle, 0, Colors.red),
-              customButton(model, textScaleFactor, textStyle, 1, Colors.orange),
-              customButton(model, textScaleFactor, textStyle, 2, Colors.lightBlueAccent),
-              customButton(model, textScaleFactor, textStyle, 3, Colors.green),
+              customButton(model, DataModelSettings.value1, Colors.orange),
+              customButton(model, DataModelSettings.value2, Colors.lightBlueAccent),
+              customButton(model, DataModelSettings.value3, Colors.green),
             ],
     );
   }
 
-  FloatingActionButton customButton(
-      VocabModel model, double textScaleFactor, TextStyle textStyle, int ind, Color color) {
+  FloatingActionButton customButton(VocabModel model, int ind, Color color) {
     return FloatingActionButton.extended(
       backgroundColor: color,
       heroTag: ind + 2,
-      onPressed: () => model.nextItem(ind + 1),
+      onPressed: () => model.nextItem(ind),
       label: Text(
-        DataModelSettings.levels[ind],
-        textScaleFactor: textScaleFactor,
-        style: textStyle,
+        DataModelSettings.levels[ind - 1],
+        textScaleFactor: 1.75,
+        style: lightFont,
       ),
     );
-  }
-
-  Widget _repetitionsView(List<Item> repetitions) {
-    return Center(
-        child: ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: repetitions.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Material(
-                  child: ListTile(
-                      title: Text(
-                '${repetitions[index].he0} - ${repetitions[index].eng0}',
-                textScaleFactor: 1.5,
-                style: const TextStyle(fontWeight: FontWeight.w300),
-              )));
-            }));
   }
 
   void _menuSelection(int value, BuildContext context, VocabModel model) {
     if (value == 2) _settings(context, model);
     if (value == 3) _about(context);
-    if (value == 4) model.nextItem(DataModelSettings.undoneLevel);
+    if (value == 4) model.nextItem(DataModelSettings.tailLevel);
     if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
+    if (value == 6) model.prevItem();
+  }
+
+  statDisplay(BuildContext context, List<Item> items) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SingleChildScrollView(
+                      child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        items.select((i, j) => i.he0).join('\n'),
+                        textDirection: TextDirection.rtl,
+                        overflow: TextOverflow.clip,
+                        textScaleFactor: 1.25,
+                      ),
+                      Text(
+                        items.select((i, j) => '  ${i.eng0}').join('\n'),
+                        overflow: TextOverflow.clip,
+                        textScaleFactor: 1.25,
+                      )
+                    ],
+                  ))));
+        });
   }
 }

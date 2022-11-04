@@ -18,6 +18,8 @@ class VocabModel extends ChangeNotifier {
   Item? _current;
   final _random = Random();
 
+  final _stack = <Item>[];
+
   late ISerializer _serializer;
   late AbstractDataModel _model;
 
@@ -49,12 +51,9 @@ class VocabModel extends ChangeNotifier {
   bool _showHe = false;
   bool _showEng = false;
 
-  List<Item> get repetitions => _repetitions;
-  final _repetitions = <Item>[];
+  bool get hasPrevious => _stack.isNotEmpty;
 
   VocabModel(String fileName, List<Item> items, ISerializer serializer) {
-    _findRepetitions(items);
-
     _sourceName = p.basename(fileName);
     _items = items;
 
@@ -65,39 +64,30 @@ class VocabModel extends ChangeNotifier {
     _serializer = serializer;
   }
 
-  void _findRepetitions(List<Item> items) {
-    var hmap = <String, Item>{};
-
-    for (var item in items) {
-      var key = haserNikud(item.he0);
-      if (hmap.containsKey(key)) {
-        _repetitions.add(hmap[key]!);
-        _repetitions.add(item);
-      } else {
-        hmap[key] = item;
-      }
-    }
-  }
-
   //---------------------------------[ properties ]---------------------------------
 
   int get length => _model.length;
 
-  int get count1 =>
-      _model.where((element) => element.level == DataModelSettings.hiddenLevel).length;
+  List<Item> get count1 =>
+      _model.where((element) => element.level == DataModelSettings.hiddenLevel).toList();
 
-  int get count2 =>
-      _model.where((element) => element.level == DataModelSettings.undoneLevel).length;
+  List<Item> get count2 => _model
+      .where((element) =>
+          (element.level == DataModelSettings.undoneLevel) ||
+          (element.level == DataModelSettings.tailLevel))
+      .toList();
 
-  int get count3 => _model
+  List<Item> get count3 => _model
       .where((element) =>
           (element.level > DataModelSettings.undoneLevel) &&
           (element.level < DataModelSettings.maxLevel))
-      .length;
+      .toList();
 
-  int get count4 => _model.where((element) => element.level == DataModelSettings.maxLevel).length;
+  List<Item> get count4 =>
+      _model.where((element) => element.level == DataModelSettings.maxLevel).toList();
 
-  int get count5 => _model.where((element) => element.level > DataModelSettings.maxLevel).length;
+  List<Item> get count5 =>
+      _model.where((element) => element.level > DataModelSettings.maxLevel).toList();
 
   String get he0 {
     if (!_showHe || _current == null) return "";
@@ -151,13 +141,23 @@ class VocabModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void nextItem(int level) {
+  void nextItem(int value) {
     if (_current != null) {
-      _model.setLevel(_current!, level);
+      _model.setLevel(_current!, value);
       _serializer.push(_current!);
+      _stack.add(_current!);
     }
 
     _current = _model.nextItem(_current);
+    _prepareTransaction(false);
+    notifyListeners();
+  }
+
+  void prevItem() {
+    var item = _stack.isNotEmpty ? _stack.removeLast() : null;
+    if (item == null || item == _current) return;
+
+    _current = item;
     _prepareTransaction(false);
     notifyListeners();
   }
@@ -178,7 +178,7 @@ class VocabModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void start() {
+  void initialize() {
     if (_current != null) return;
     _current = _model.nextItem(null);
     _prepareTransaction(false);

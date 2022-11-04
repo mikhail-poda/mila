@@ -1,6 +1,5 @@
 import 'package:intl/intl.dart';
 import 'package:mila/Item.dart';
-import 'DataModel.dart';
 import 'ISerializer.dart';
 import 'Library.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -21,21 +20,17 @@ class WebSerializer implements ISerializer {
 
   @override
   void sync(List<Item> items) async {
-    final last = <Item>[];
-
     for (var item in items) {
       var name = haserNikud(item.he0);
       var level = _levels.get(name);
       if (level == null) continue;
       item.level = level;
 
-      if (level == DataModelSettings.undoneLevel) last.add(item);
-
       var date = _text.get(name)!.split('#').last;
       item.lastUse = _formatter.parse(date);
     }
 
-    // move to the end of the list¶
+    // move to the end of the list
     for (var item in items) {
       items.remove(item);
       items.add(item);
@@ -58,7 +53,7 @@ class WebSerializer implements ISerializer {
       final cell = str.split('#');
       final name = haserNikud(cell[0]);
       var level = _levels.get(name);
-      yield [cell[0], cell[1], '$level / ${cell[2]}', 'level / last seen'];
+      yield [cell[0], cell[1], 'level / last seen', '$level / ${cell[2]}'];
     }
   }
 }

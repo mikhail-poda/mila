@@ -1,12 +1,11 @@
 import 'dart:async';
+import 'Constants.dart';
 import 'ISerializer.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http/http.dart' as http;
 
 class WebSource implements ISource {
-  static const String uri =
-      'https://docs.google.com/spreadsheets/d/e/2PACX-1vTTUPG22pCGbrlYULESZ5FFyYTo9jyFGFEBk1Wx41gZiNvkonYcLPypdPGCZzFxTzywU4hCra4Fmx-b/pubhtml';
   late Document? _document;
   late List<String>? _names;
 
