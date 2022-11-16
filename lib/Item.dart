@@ -45,15 +45,30 @@ class Item {
     for (var item in items.toList()) {
       if (item._row.length < 4) continue;
 
-      var heList = item._row[2].split(' / ');
-      var engList = item._row[3].split(' / ');
+      var row2 = item._row[2].trim();
+      var row3 = item._row[3].trim();
+
+      if (row2.isEmpty) continue;
+      if (row3.isEmpty) row3 = item.eng0;
+
+      var heList = row2.split('/');
+      var engList = row3.split('/');
+
+      if (heList.length == 1 && heList[0].contains(',')) {
+        heList = heList[0].split(',');
+      }
+
+      if (engList.length == 1 && heList.length > 1) {
+        engList = List.filled(heList.length, engList[0]);
+      }
+
       var secondary = IterableZip([heList, engList]);
 
       for (var entry in secondary) {
-        var he = haserNikud(entry[0]);
+        var he = haserNikud(entry[0].trim());
         var other = map[he];
         if (other == null) {
-          other = Item(<String>[entry[0], entry[1]]);
+          other = Item(<String>[entry[0].trim(), entry[1].trim()]);
           map[he] = other;
           items.add(other);
         }
