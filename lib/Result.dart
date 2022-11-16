@@ -43,7 +43,9 @@ class SourceError {
       }
     }
 
-    var num = repetitions.distinct((e) => haserNikud(e.he0)).length;
+    var num = repetitions
+        .distinct((e) => haserNikud(e.he0))
+        .length;
     if (num == 0) return null;
 
     var msg = 'Error: $num repetitions found.';

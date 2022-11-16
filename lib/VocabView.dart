@@ -24,18 +24,19 @@ const boldFont = TextStyle(fontWeight: FontWeight.bold);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
 
 final fileResultProvider = FutureProvider<ModelOrError>((ref) async {
-  final source = ref.watch(vocabularyNameProvider);
+  final sourceName = ref.watch(vocabularyNameProvider);
 
-  var lines = source == serialName
+  var isSerializer = sourceName == serialName;
+  var lines = isSerializer
       ? GetIt.I<ISerializer>().loadVocabulary()
-      : GetIt.I<ISource>().loadVocabulary(source);
+      : GetIt.I<ISource>().loadVocabulary(sourceName);
 
   final items = await lines.map((e) => Item(e)).toList();
-  final err = SourceError.any(source, items);
+  final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 
   final serializer = GetIt.I<ISerializer>();
-  return ModelOrError.value(VocabModel(source, items, serializer));
+  return ModelOrError.value(VocabModel(isSerializer, sourceName, items, serializer));
 });
 
 final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
@@ -225,9 +226,9 @@ class VocabView extends ConsumerWidget {
                       const Expanded(child: Text("")),
                       textLink('פ', 'https://www.pealim.com/search/?q=${haserNikud(model.he0)}'),
                       const Expanded(child: Text("")),
-                      textLink('מ״סק', 'https://www.morfix.co.il/${haserNikud(model.he0)}'),
+                      textLink('m', 'https://www.morfix.co.il/${haserNikud(model.he0)}'),
                       const Expanded(child: Text("")),
-                      textLink('מ״ג', 'https://milog.co.il/${haserNikud(model.he0)}'),
+                      textLink('מ', 'https://milog.co.il/${haserNikud(model.he0)}'),
                       const Expanded(child: Text("")),
                       textLink('g',
                           'https://translate.google.com/?sl=iw&tl=en&text=${haserNikud(model.he0)}'),

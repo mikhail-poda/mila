@@ -1,58 +1,67 @@
+import 'package:darq/darq.dart';
+import 'package:collection/collection.dart' show IterableZip;
+
 import 'DataModel.dart';
+import 'Library.dart';
 
 class Item {
   DateTime? lastUse;
   int level = DataModelSettings.undoneLevel;
-  final List<String>? _row;
+
+  final List<String> _row;
+  final Set<Item> _secondary = <Item>{};
 
   Item(this._row);
 
   String get he0 {
-    return _row![0];
+    return _row[0];
   }
 
   String get eng0 {
-    return _row![1];
+    return _row[1];
   }
 
   String get he1 {
-    if (_row!.length < 3) return "";
-    var cell = _row![2].split(' / ');
-
-    return cell.join("\n");
-  }
-
-  set he1(String str) {
-    if (_row!.length < 3) {
-      _row!.add(str);
-    } else {
-      _row![2] = str;
-    }
+    return _secondary.select((item, _) => item.he0).join("\n");
   }
 
   String get eng1 {
-    if (_row!.length < 4) return "";
-    var cell = _row![3].split(' / ');
-
-    return cell.join("\n");
-  }
-
-  set eng1(String str) {
-    if (_row!.length < 4) {
-      _row!.add(str);
-    } else {
-      _row![3] = str;
-    }
+    return _secondary.select((item, _) => item.eng0).join("\n");
   }
 
   String get he2 {
-    if (_row!.length < 5) return "";
-    return _row![4];
+    if (_row.length < 5) return "";
+    return _row[4];
   }
 
   String get eng2 {
-    if (_row!.length < 6) return "";
-    return _row![5];
+    if (_row.length < 6) return "";
+    return _row[5];
+  }
+
+  static void addSecondary(List<Item> items) {
+    var map = items.toMap((e) => MapEntry(haserNikud(e.he0), e), modifiable: true);
+
+    for (var item in items.toList()) {
+      if (item._row.length < 4) continue;
+
+      var heList = item._row[2].split(' / ');
+      var engList = item._row[3].split(' / ');
+      var secondary = IterableZip([heList, engList]);
+
+      for (var entry in secondary) {
+        var he = haserNikud(entry[0]);
+        var other = map[he];
+        if (other == null) {
+          other = Item(<String>[entry[0], entry[1]]);
+          map[he] = other;
+          items.add(other);
+        }
+
+        item._secondary.add(other);
+        other._secondary.add(item);
+      }
+    }
   }
 
   static void addSynonyms(List<Item> items) {
@@ -88,13 +97,12 @@ class Item {
     }
 
     // add synonyms to item content
-    for (final item in syn.keys) {
-      var iset = syn[item];
-      for (final other in iset!) {
-        if (item == other) continue;
+    for (final entry in syn.entries) {
+      var item = entry.key;
+      var iset = entry.value;
 
-        item.he1 += ' / ${other.he0}';
-        item.eng1 += ' / ${other.eng0}';
+      for (final other in iset) {
+        if (item != other) item._secondary.add(other);
       }
     }
   }

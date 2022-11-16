@@ -53,12 +53,15 @@ class VocabModel extends ChangeNotifier {
 
   bool get hasPrevious => _stack.isNotEmpty;
 
-  VocabModel(String fileName, List<Item> items, ISerializer serializer) {
-    _sourceName = p.basename(fileName);
+  VocabModel(bool isSerializer, String sourceName, List<Item> items, ISerializer serializer) {
+    _sourceName = p.basename(sourceName);
     _items = items;
 
     serializer.sync(_items);
-    Item.addSynonyms(_items);
+    if (!isSerializer) {
+      Item.addSecondary(_items);
+      Item.addSynonyms(_items);
+    }
 
     setIterationMode(_iterationMode.index);
     _serializer = serializer;
