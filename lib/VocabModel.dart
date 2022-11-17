@@ -57,11 +57,11 @@ class VocabModel extends ChangeNotifier {
     _sourceName = p.basename(sourceName);
     _items = items;
 
-    serializer.sync(_items);
     if (!isSerializer) {
       Item.addSecondary(_items);
       Item.addSynonyms(_items);
     }
+    serializer.sync(_items);
 
     setIterationMode(_iterationMode.index);
     _serializer = serializer;
@@ -129,6 +129,11 @@ class VocabModel extends ChangeNotifier {
   String get eng2 {
     if (!_isComplete || _current == null) return "";
     return _current!.eng2;
+  }
+
+  String get heng0 {
+    if (!_isComplete || _current == null) return "";
+    return _current!.heng0;
   }
 
   //---------------------------------[ commands ]---------------------------------

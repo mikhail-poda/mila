@@ -43,14 +43,22 @@ class SourceError {
       }
     }
 
-    var num = repetitions
-        .distinct((e) => haserNikud(e.he0))
-        .length;
-    if (num == 0) return null;
+    var num = repetitions.distinct((e) => haserNikud(e.he0)).length;
+    if (num != 0) {
+      var msg = 'Error: $num repetitions found.';
+      var dsc = repetitions.select((i, j) => '${i.he0}   ${i.eng0}').join('\n');
 
-    var msg = 'Error: $num repetitions found.';
-    var dsc = repetitions.select((i, j) => '${i.he0}   ${i.eng0}').join('\n');
+      return SourceError(name, items.length, msg, dsc);
+    }
 
-    return SourceError(name, items.length, msg, dsc);
+    var commas = items.where((element) => element.he0.contains(',')).toList();
+    if (commas.isNotEmpty) {
+      var msg = 'Error: ${commas.length} entries contain commas.';
+      var dsc = commas.select((i, j) => '${i.he0}   ${i.eng0}').join('\n');
+
+      return SourceError(name, items.length, msg, dsc);
+    }
+
+    return null;
   }
 }

@@ -13,31 +13,19 @@ class Item {
 
   Item(this._row);
 
-  String get he0 {
-    return _row[0];
-  }
+  String get he0 => _row[0];
 
-  String get eng0 {
-    return _row[1];
-  }
+  String get eng0 => _row[1];
 
-  String get he1 {
-    return _secondary.select((item, _) => item.he0).join("\n");
-  }
+  String get he1 => _secondary.select((item, _) => item.he0).join("\n");
 
-  String get eng1 {
-    return _secondary.select((item, _) => item.eng0).join("\n");
-  }
+  String get eng1 => _secondary.select((item, _) => item.eng0).join("\n");
 
-  String get he2 {
-    if (_row.length < 5) return "";
-    return _row[4];
-  }
+  String get he2 => (_row.length < 5) ? "" : _row[4];
 
-  String get eng2 {
-    if (_row.length < 6) return "";
-    return _row[5];
-  }
+  String get eng2 => (_row.length < 6) ? "" : _row[5];
+
+  String get heng0 => (_row.length < 7) ? "" : _row[6];
 
   static void addSecondary(List<Item> items) {
     var map = items.toMap((e) => MapEntry(haserNikud(e.he0), e), modifiable: true);
@@ -65,7 +53,7 @@ class Item {
       var secondary = IterableZip([heList, engList]);
 
       for (var entry in secondary) {
-        var he = haserNikud(entry[0].trim());
+        var he = haserNikud(entry[0]).trim();
         var other = map[he];
         if (other == null) {
           other = Item(<String>[entry[0].trim(), entry[1].trim()]);
@@ -84,7 +72,7 @@ class Item {
 
     // make a set of items for each word
     for (final item in items) {
-      final cell = item.eng0.replaceAll(";", ",").split(",").map((s) => s.trim()).toList();
+      final cell = item.eng0.replaceAll(";", ",").split(",").map((s) => clean(s)).toList();
 
       for (final str in cell) {
         var set = map[str];
@@ -120,5 +108,19 @@ class Item {
         if (item != other) item._secondary.add(other);
       }
     }
+  }
+
+  /// verbs can start with 'to' and
+  static String clean(String s) {
+    s = s.trim();
+    if (s.startsWith('to ')) {
+      s = s.substring(3).toString();
+    }
+    var ind = s.indexOf('(');
+    if (ind > 0) {
+      s = s.substring(0, ind - 1).trim();
+    }
+
+    return s;
   }
 }

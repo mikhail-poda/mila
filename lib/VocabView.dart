@@ -20,6 +20,7 @@ import 'main.dart';
 typedef ModelOrError = Result<VocabModel, SourceError>;
 
 const lightFont = TextStyle(fontWeight: FontWeight.w300);
+const italicFont = TextStyle(fontWeight: FontWeight.w300, fontStyle: FontStyle.italic);
 const boldFont = TextStyle(fontWeight: FontWeight.bold);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
 
@@ -285,7 +286,12 @@ class VocabView extends ConsumerWidget {
               overflow: TextOverflow.clip,
               style: lightFont,
             )),
-      const Text(""),
+      Text(
+        model.heng0,
+        textScaleFactor: 1.75,
+        overflow: TextOverflow.clip,
+        style: italicFont,
+      ),
       const Text(""),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
