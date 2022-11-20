@@ -7,7 +7,7 @@ Definitions:
 - **primary term** (word) corresponding to the first and second columns in the table are the Hebrew term and translation being learned
 - **secondary terms** (words) are zero or many terms which are shown under the primary term and related to it. Usually these are synnyms or terms derived from the same roots
 
-Only the first Term is mandatory,
+Only the first term is mandatory,
 
 ## Rules
 
