@@ -214,4 +214,11 @@ class VocabModel extends ChangeNotifier {
       _showEng = true;
     }
   }
+
+  void resetItems() {
+    for (var item in _items) {
+      item.level = DataModelSettings.undoneLevel;
+    }
+    notifyListeners();
+  }
 }

@@ -36,7 +36,7 @@ class SequentialDataModel extends AbstractDataModel {
   @override
   void setLevel(Item item, int value) {
     var level = getLevel(item.level, value);
-    if (item.level < DataModelSettings.maxLevel) {
+    if (item.level < DataModelSettings.maxLevel || level < DataModelSettings.maxLevel) {
       item.level = level;
     }
     item.lastUse = DateTime.now();

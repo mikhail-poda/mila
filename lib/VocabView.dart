@@ -111,6 +111,8 @@ class VocabView extends ConsumerWidget {
         PopupMenuItem<int>(value: 5, enabled: model.isComplete, child: const Text('Hide item')),
         PopupMenuItem<int>(
             value: 6, enabled: model.hasPrevious, child: const Text('Previous item')),
+        const PopupMenuItem<int>(
+            value: 7, child: Text('Reset all items')),
       ],
     );
   }
@@ -376,6 +378,7 @@ class VocabView extends ConsumerWidget {
     if (value == 4) model.nextItem(DataModelSettings.tailLevel);
     if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
     if (value == 6) model.prevItem();
+    if (value == 6) model.resetItems();
   }
 
   statDisplay(BuildContext context, List<Item> items) {

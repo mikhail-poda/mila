@@ -51,6 +51,8 @@ class WebSerializer implements ISerializer {
   Stream<List<String>> loadVocabulary() async* {
     for (var str in _text.values) {
       final cell = str.split('#');
+      if (cell[0].contains(',')) continue;
+
       final name = haserNikud(cell[0]);
       var level = _levels.get(name);
       yield [cell[0], cell[1], 'level / last seen', '$level / ${cell[2]}'];
