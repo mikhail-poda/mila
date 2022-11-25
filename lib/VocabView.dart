@@ -378,7 +378,7 @@ class VocabView extends ConsumerWidget {
     if (value == 4) model.nextItem(DataModelSettings.tailLevel);
     if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
     if (value == 6) model.prevItem();
-    if (value == 6) model.resetItems();
+    if (value == 7) model.resetItems();
   }
 
   statDisplay(BuildContext context, List<Item> items) {

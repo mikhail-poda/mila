@@ -216,9 +216,7 @@ class VocabModel extends ChangeNotifier {
   }
 
   void resetItems() {
-    for (var item in _items) {
-      item.level = DataModelSettings.undoneLevel;
-    }
+    _model.resetItems();
     notifyListeners();
   }
 }

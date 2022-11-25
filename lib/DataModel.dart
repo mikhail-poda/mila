@@ -20,6 +20,8 @@ abstract class AbstractDataModel with IterableMixin<Item> {
   Item nextItem(Item? current);
 
   void setLevel(Item item, int value);
+
+  void resetItems();
 }
 
 class SequentialDataModel extends AbstractDataModel {
@@ -40,6 +42,13 @@ class SequentialDataModel extends AbstractDataModel {
       item.level = level;
     }
     item.lastUse = DateTime.now();
+  }
+
+  @override
+  void resetItems() {
+    for (var item in _items) {
+      item.level = DataModelSettings.undoneLevel;
+    }
   }
 }
 
@@ -122,6 +131,14 @@ class RandomDataModel extends AbstractDataModel {
     if (item.level == DataModelSettings.tailLevel && value == DataModelSettings.tailLevel) {
       _excluded.add(item);
     }
+  }
+
+  @override
+  void resetItems() {
+    for (var item in _items) {
+      item.level = DataModelSettings.undoneLevel;
+    }
+    _excluded.clear();
   }
 }
 
