@@ -53,14 +53,10 @@ class VocabModel extends ChangeNotifier {
 
   bool get hasPrevious => _stack.isNotEmpty;
 
-  VocabModel(bool isSerializer, String sourceName, List<Item> items, ISerializer serializer) {
+  VocabModel(String sourceName, List<Item> items, ISerializer serializer) {
     _sourceName = p.basename(sourceName);
     _items = items;
 
-    if (!isSerializer) {
-      Item.addSecondary(_items);
-      Item.addSynonyms(_items);
-    }
     serializer.sync(_items);
 
     setIterationMode(_iterationMode.index);
@@ -217,6 +213,9 @@ class VocabModel extends ChangeNotifier {
 
   void resetItems() {
     _model.resetItems();
+    for (var item in _items) {
+      _serializer.push(item!);
+    }
     notifyListeners();
   }
 }

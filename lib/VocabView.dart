@@ -36,8 +36,14 @@ final fileResultProvider = FutureProvider<ModelOrError>((ref) async {
   final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 
+  if (!isSerializer) {
+    Item.addSecondary(items);
+    Item.addSynonyms(items);
+  }
+
   final serializer = GetIt.I<ISerializer>();
-  return ModelOrError.value(VocabModel(isSerializer, sourceName, items, serializer));
+  final model = VocabModel(sourceName, items, serializer);
+  return ModelOrError.value(model);
 });
 
 final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
@@ -111,8 +117,7 @@ class VocabView extends ConsumerWidget {
         PopupMenuItem<int>(value: 5, enabled: model.isComplete, child: const Text('Hide item')),
         PopupMenuItem<int>(
             value: 6, enabled: model.hasPrevious, child: const Text('Previous item')),
-        const PopupMenuItem<int>(
-            value: 7, child: Text('Reset all items')),
+        const PopupMenuItem<int>(value: 7, child: Text('Reset all items')),
       ],
     );
   }
