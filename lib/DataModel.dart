@@ -17,7 +17,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
   @override
   Iterator<Item> get iterator => _items.iterator;
 
-  Item nextItem(Item? current);
+  Item? nextItem(Item? current);
 
   void setLevel(Item item, int value);
 
@@ -34,7 +34,7 @@ class SequentialDataModel extends AbstractDataModel {
   SequentialDataModel(List<Item> items) : super(items);
 
   @override
-  Item nextItem(Item? current) {
+  Item? nextItem(Item? current) {
     var ind = _index++;
     return _items[ind % _items.length];
   }
@@ -79,7 +79,7 @@ class RandomDataModel extends AbstractDataModel {
   }
 
   @override
-  Item nextItem(Item? current) {
+  Item? nextItem(Item? current) {
     // once per hour reload easy (done) items
     if (_lastReset!.add(const Duration(hours: 1)).isBefore(DateTime.now())) {
       _updateExcludedList();
@@ -97,7 +97,7 @@ class RandomDataModel extends AbstractDataModel {
         .toList();
 
     if (items.isEmpty) {
-      return _getRandomItem(_items);
+      return null;
     }
 
     var list = <Item>[];

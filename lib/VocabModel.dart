@@ -53,6 +53,8 @@ class VocabModel extends ChangeNotifier {
 
   bool get hasPrevious => _stack.isNotEmpty;
 
+  bool get hasItem => _current != null;
+
   VocabModel(String sourceName, List<Item> items, ISerializer serializer) {
     _sourceName = p.basename(sourceName);
     _items = items;

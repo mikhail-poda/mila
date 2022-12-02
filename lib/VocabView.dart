@@ -65,17 +65,45 @@ class VocabView extends ConsumerWidget {
                   _.error.toString(),
                   style: const TextStyle(color: Colors.red),
                 ),
-            data: (asyncData) {
-              var result = asyncData.value;
-              return result.hasValue
-                  ? _buildScaffold(context, ref)
-                  : _showError(context, ref, result.error!);
-            }));
+            data: (asyncData) => _buildScaffold(context, ref, asyncData.value)));
   }
 
-  Scaffold _buildScaffold(BuildContext context, WidgetRef ref) {
+  Scaffold _buildScaffold(
+      BuildContext context, WidgetRef ref, Result<VocabModel, SourceError> result) {
+    if (!result.hasValue) {
+      var error = result.error!;
+      return Scaffold(
+        appBar: AppBar(title: Text('${error.name} 〈${error.length}〉')),
+        body: Center(
+            child: Text(
+          error.description,
+          textScaleFactor: 2,
+          style: lightFont,
+          textAlign: TextAlign.center,
+        )),
+        bottomNavigationBar: Text(error.message,
+            textScaleFactor: 2,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+      );
+    }
+
     var model = ref.watch(vocabProvider);
     model.initialize();
+
+    if (!model.hasItem) {
+      return Scaffold(
+          appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
+            _menu(context, model),
+          ]),
+          body: const Center(
+              child: Text(
+            "Nothing to learn for today!",
+            textScaleFactor: 2,
+            style: lightFont,
+            textAlign: TextAlign.center,
+          )));
+    }
 
     return Scaffold(
         appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
@@ -83,18 +111,6 @@ class VocabView extends ConsumerWidget {
         ]),
         body: _body(context, model),
         bottomNavigationBar: _buttons(model));
-  }
-
-  Scaffold _showError(BuildContext context, WidgetRef ref, SourceError error) {
-    return Scaffold(
-        appBar: AppBar(title: Text('${error.name} 〈${error.length}〉')),
-        body: Text(error.description, textScaleFactor: 2, style: lightFont),
-        bottomNavigationBar: Text(
-          error.message,
-          textScaleFactor: 2,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-        ));
   }
 
   PopupMenuButton<int> _menu(BuildContext context, VocabModel model) {
