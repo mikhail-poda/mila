@@ -399,7 +399,37 @@ class VocabView extends ConsumerWidget {
     if (value == 4) model.nextItem(DataModelSettings.tailLevel);
     if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
     if (value == 6) model.prevItem();
-    if (value == 7) model.resetItems();
+    if (value == 7) _reset(context, model);
+  }
+
+  void _reset(BuildContext context, VocabModel model) async {
+    bool result = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirmation', textScaleFactor: 1.5),
+          content: const Text('Do you want to reset all items?', textScaleFactor: 1.5),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true)
+                    .pop(false); // dismisses only the dialog and returns false
+              },
+              child: const Text('No', textScaleFactor: 1.5),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true)
+                    .pop(true); // dismisses only the dialog and returns true
+              },
+              child: const Text('Yes', textScaleFactor: 1.5),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result) model.resetItems();
   }
 
   statDisplay(BuildContext context, List<Item> items) {
