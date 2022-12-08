@@ -36,10 +36,8 @@ final fileResultProvider = FutureProvider<ModelOrError>((ref) async {
   final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 
-  if (!isSerializer) {
-    Item.addSecondary(items);
-    Item.addSynonyms(items);
-  }
+  Item.addSecondary(items);
+  Item.addSynonyms(items);
 
   final serializer = GetIt.I<ISerializer>();
   final model = VocabModel(sourceName, items, serializer);

@@ -113,7 +113,10 @@ class Item {
   /// verbs can start with 'to' and
   static String clean(String s) {
     s = s.trim();
-    if (s.startsWith('to ')) {
+    if (s.startsWith('to be ')) {
+      s = s.substring(6).toString();
+    }
+    else if (s.startsWith('to ')) {
       s = s.substring(3).toString();
     }
     var ind = s.indexOf('(');
