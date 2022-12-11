@@ -21,9 +21,12 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   void setLevel(Item item, int value);
 
-  void resetItems() {
+  Iterable<Item> resetItems(bool Function(Item) func) sync* {
     for (var item in _items) {
-      item.level = DataModelSettings.undoneLevel;
+      if (func(item)) {
+        item.level = DataModelSettings.undoneLevel;
+        yield item;
+      }
     }
   }
 }
@@ -62,6 +65,7 @@ class RandomDataModel extends AbstractDataModel {
 
   void _updateExcludedList() {
     _lastReset = DateTime.now();
+    _excluded.clear();
 
     for (var item in _items) {
       if (item.level == DataModelSettings.hiddenLevel) {
@@ -97,7 +101,9 @@ class RandomDataModel extends AbstractDataModel {
         .toList();
 
     if (items.isEmpty) {
-      return null;
+      if (_last.length < 2) return null;
+      _last.clear();
+      return nextItem(current);
     }
 
     var list = <Item>[];
@@ -125,15 +131,16 @@ class RandomDataModel extends AbstractDataModel {
     // do no use these items any more in this session
     if (item.level >= DataModelSettings.maxLevel) _excluded.add(item);
     if (item.level == DataModelSettings.hiddenLevel) _excluded.add(item);
-    if (item.level == DataModelSettings.tailLevel && value == DataModelSettings.tailLevel) {
+    if (item.level == DataModelSettings.tailLevel) {
       _excluded.add(item);
     }
   }
 
   @override
-  void resetItems() {
-    super.resetItems();
-    _excluded.clear();
+  Iterable<Item> resetItems(bool Function(Item) func) sync* {
+    var items = super.resetItems(func).toList();
+    _updateExcludedList();
+    yield* items;
   }
 }
 

@@ -132,6 +132,9 @@ class VocabView extends ConsumerWidget {
         PopupMenuItem<int>(
             value: 6, enabled: model.hasPrevious, child: const Text('Previous item')),
         const PopupMenuItem<int>(value: 7, child: Text('Reset all items')),
+        PopupMenuItem<int>(
+            value: 8, enabled: model.isComplete, child: const Text('Reset this item')),
+        const PopupMenuItem<int>(value: 9, child: Text('Reset hidden items')),
       ],
     );
   }
@@ -397,10 +400,12 @@ class VocabView extends ConsumerWidget {
     if (value == 4) model.nextItem(DataModelSettings.tailLevel);
     if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
     if (value == 6) model.prevItem();
-    if (value == 7) _reset(context, model);
+    if (value == 7) _resetAll(context, model);
+    if (value == 8) model.nextItem(DataModelSettings.undoneLevel);
+    if (value == 9) model.resetItems((item) => item.level == DataModelSettings.hiddenLevel);
   }
 
-  void _reset(BuildContext context, VocabModel model) async {
+  void _resetAll(BuildContext context, VocabModel model) async {
     bool result = await showDialog(
       context: context,
       builder: (context) {
@@ -427,7 +432,7 @@ class VocabView extends ConsumerWidget {
       },
     );
 
-    if (result) model.resetItems();
+    if (result) model.resetItems((i) => true);
   }
 
   statDisplay(BuildContext context, List<Item> items) {

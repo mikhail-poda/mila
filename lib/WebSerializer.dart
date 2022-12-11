@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:mila/DataModel.dart';
 import 'package:mila/Item.dart';
 import 'ISerializer.dart';
 import 'Library.dart';
@@ -40,6 +41,13 @@ class WebSerializer implements ISerializer {
   @override
   void push(Item item) async {
     final heh = haserNikud(item.he0);
+
+    if (item.level == DataModelSettings.undoneLevel) {
+      _text.delete(heh);
+      _levels.delete(heh);
+      return;
+    }
+
     final now = DateTime.now();
     final date = _formatter.format(now);
 

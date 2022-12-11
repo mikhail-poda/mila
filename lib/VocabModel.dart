@@ -151,7 +151,10 @@ class VocabModel extends ChangeNotifier {
     if (_current != null) {
       _model.setLevel(_current!, value);
       _serializer.push(_current!);
-      _stack.add(_current!);
+
+      if (_current!.level != DataModelSettings.undoneLevel) {
+        _stack.add(_current!);
+      }
     }
 
     _current = _model.nextItem(_current);
@@ -213,9 +216,9 @@ class VocabModel extends ChangeNotifier {
     }
   }
 
-  void resetItems() {
-    _model.resetItems();
-    for (var item in _items) {
+  void resetItems(bool Function(Item) func) {
+    var items = _model.resetItems(func);
+    for (var item in items) {
       _serializer.push(item!);
     }
     notifyListeners();
