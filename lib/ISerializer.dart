@@ -4,6 +4,8 @@ abstract class ISource {
   Future<List<String>> getVocabularies();
 
   Stream<List<String>> loadVocabulary(String fileName);
+
+  Stream<List<String>> loadComplete();
 }
 
 abstract class ISerializer {

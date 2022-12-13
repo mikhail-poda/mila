@@ -10,8 +10,11 @@ class Item {
 
   final List<String> _row;
   final Set<Item> _secondary = <Item>{};
+  late String Id;
 
-  Item(this._row);
+  Item(this._row) {
+    Id = haserNikud(he0);
+  }
 
   String get he0 => _row[0];
 
@@ -28,7 +31,7 @@ class Item {
   String get heng0 => (_row.length < 7) ? "" : _row[6];
 
   static void addSecondary(List<Item> items) {
-    var map = items.toMap((e) => MapEntry(haserNikud(e.he0), e), modifiable: true);
+    var map = items.toMap((e) => MapEntry(e.Id, e), modifiable: true);
 
     for (var item in items.toList()) {
       if (item._row.length < 4) continue;
@@ -113,17 +116,24 @@ class Item {
   /// verbs can start with 'to' and
   static String clean(String s) {
     s = s.trim();
-    if (s.startsWith('to be ')) {
-      s = s.substring(6).toString();
-    }
-    else if (s.startsWith('to ')) {
-      s = s.substring(3).toString();
-    }
+
+    if (s.startsWith('to ')) s = s.substring(3).toString();
+    if (s.startsWith('be ')) s = s.substring(3).toString();
+
     var ind = s.indexOf('(');
     if (ind > 0) {
       s = s.substring(0, ind - 1).trim();
     }
 
     return s;
+  }
+
+  static Iterable<Item> makeUnique(List<Item> items) sync* {
+    var set = <String>{};
+    for (var item in items) {
+      if (set.contains(item.Id)) continue;
+      set.add(item.Id);
+      yield item;
+    }
   }
 }

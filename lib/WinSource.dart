@@ -7,6 +7,9 @@ import 'package:path/path.dart' as p;
 import 'ISerializer.dart';
 
 class WinSource implements ISource {
+
+  late List<String>? _names;
+
   @override
   Future<List<String>> getVocabularies() async {
     final path = getPath();
@@ -32,6 +35,14 @@ class WinSource implements ISource {
     var home = envVars['UserProfile'];
     var path = p.join(home!, "mila");
     return path;
+  }
+
+  @override
+  Stream<List<String>> loadComplete() async* {
+    for (var name in _names!) {
+      var stream = loadVocabulary(name);
+      yield* stream;
+    }
   }
 
   @override

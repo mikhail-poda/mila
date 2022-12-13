@@ -27,12 +27,15 @@ const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w3
 final fileResultProvider = FutureProvider<ModelOrError>((ref) async {
   final sourceName = ref.watch(vocabularyNameProvider);
 
-  var isSerializer = sourceName == serialName;
-  var lines = isSerializer
+  var lines = sourceName == serialName
       ? GetIt.I<ISerializer>().loadVocabulary()
-      : GetIt.I<ISource>().loadVocabulary(sourceName);
+      : sourceName == completeName
+          ? GetIt.I<ISource>().loadComplete()
+          : GetIt.I<ISource>().loadVocabulary(sourceName);
 
-  final items = await lines.map((e) => Item(e)).toList();
+  var items = await lines.map((e) => Item(e)).toList();
+  if (sourceName == completeName) items = Item.makeUnique(items).toList();
+
   final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 
@@ -249,17 +252,17 @@ class VocabView extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Expanded(child: Text("")),
-                      textLink('פ', 'https://www.pealim.com/search/?q=${haserNikud(model.he0)}'),
+                      textLink('פ', 'https://www.pealim.com/search/?q=${model.currentItem!.Id}'),
                       const Expanded(child: Text("")),
-                      textLink('m', 'https://www.morfix.co.il/${haserNikud(model.he0)}'),
+                      textLink('m', 'https://www.morfix.co.il/${model.currentItem!.Id}'),
                       const Expanded(child: Text("")),
-                      textLink('מ', 'https://milog.co.il/${haserNikud(model.he0)}'),
+                      textLink('מ', 'https://milog.co.il/${model.currentItem!.Id}'),
                       const Expanded(child: Text("")),
                       textLink('g',
-                          'https://translate.google.com/?sl=iw&tl=en&text=${haserNikud(model.he0)}'),
+                          'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.Id}'),
                       const Expanded(child: Text("")),
                       textLink('r',
-                          'https://context.reverso.net/translation/hebrew-english/${haserNikud(model.he0)}'),
+                          'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.Id}'),
                       const Expanded(child: Text(""))
                     ],
                   )

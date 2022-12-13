@@ -33,7 +33,7 @@ class SourceError {
     var repetitions = <Item>[];
 
     for (var item in items) {
-      var key = haserNikud(item.he0);
+      var key = item.Id;
       if (hmap.containsKey(key)) {
         var master = hmap[key]!;
         if (!repetitions.contains(master)) repetitions.add(master);
@@ -43,7 +43,7 @@ class SourceError {
       }
     }
 
-    var num = repetitions.distinct((e) => haserNikud(e.he0)).length;
+    var num = repetitions.distinct((e) => e.Id).length;
     if (num != 0) {
       var msg = 'Error: $num repetitions found.';
       var dsc = repetitions.select((i, j) => '${i.he0}   ${i.eng0}').join('\n');

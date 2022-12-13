@@ -14,7 +14,8 @@ Future<List<String>> getVocabularies() async {
   var list0 = await GetIt.I<ISource>().getVocabularies();
   var list1 = list0.toList(); // add new item to a new list
 
-  list1.insert(0, serialName);
+  list1.insert(0, completeName);
+  list1.insert(1, serialName);
   return list1;
 }
 

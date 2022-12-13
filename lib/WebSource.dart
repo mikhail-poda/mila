@@ -29,6 +29,14 @@ class WebSource implements ISource {
   }
 
   @override
+  Stream<List<String>> loadComplete() async* {
+    for (var name in _names!) {
+      var stream = loadVocabulary(name);
+      yield* stream;
+    }
+  }
+
+  @override
   Stream<List<String>> loadVocabulary(String source) async* {
     var ind = _names!.indexOf(source);
     var tbody = _document!.getElementById('sheets-viewport')!.getElementsByTagName('tbody')[ind];

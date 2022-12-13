@@ -22,7 +22,7 @@ class WebSerializer implements ISerializer {
   @override
   void sync(List<Item> items) async {
     for (var item in items) {
-      var name = haserNikud(item.he0);
+      var name = item.Id;
       var level = _levels.get(name);
       if (level == null) continue;
       item.level = level;
@@ -40,7 +40,7 @@ class WebSerializer implements ISerializer {
 
   @override
   void push(Item item) async {
-    final heh = haserNikud(item.he0);
+    final heh = item.Id;
 
     if (item.level == DataModelSettings.undoneLevel) {
       _text.delete(heh);
