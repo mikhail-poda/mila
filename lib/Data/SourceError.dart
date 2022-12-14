@@ -1,6 +1,6 @@
 import 'package:darq/darq.dart';
 
-import '../Data/Item.dart';
+import 'Item.dart';
 
 class SourceError {
   final String name;

@@ -9,7 +9,7 @@ import '../Data/DataModelSettings.dart';
 import '../Data/Item.dart';
 import '../Library/Library.dart';
 import '../Library/Result.dart';
-import '../Library/SourceError.dart';
+import '../Data/SourceError.dart';
 import 'VocabDialogs.dart';
 import 'VocabModel.dart';
 import '../main.dart';

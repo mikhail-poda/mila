@@ -5,7 +5,7 @@ import '../Constants.dart';
 import '../IO/ISerializer.dart';
 import '../Data/Item.dart';
 import '../Library/Result.dart';
-import '../Library/SourceError.dart';
+import '../Data/SourceError.dart';
 import '../Sources/SourcesProviders.dart';
 import 'VocabModel.dart';
 
