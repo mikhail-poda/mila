@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'Constants.dart';
-import 'ISerializer.dart';
+import '../Constants.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http/http.dart' as http;
+
+import 'ISerializer.dart';
 
 class WebSource implements ISource {
   late Document? _document;

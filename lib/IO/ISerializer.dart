@@ -1,4 +1,4 @@
-import 'Item.dart';
+import '../Data/Item.dart';
 
 abstract class ISource {
   Future<List<String>> getVocabularies();

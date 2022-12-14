@@ -1,21 +1,18 @@
 import 'dart:math';
 
-import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:get_it/get_it.dart';
-import 'package:mila/ISerializer.dart';
-import 'package:mila/Item.dart';
-import 'package:toggle_switch/toggle_switch.dart';
+import 'package:mila/Vocabulary/VocabProviders.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import 'Constants.dart';
-import 'DataModel.dart';
-import 'Library.dart';
-import 'Result.dart';
-import 'SourcesView.dart';
+import '../Data/DataModelSettings.dart';
+import '../Data/Item.dart';
+import '../Library/Library.dart';
+import '../Library/Result.dart';
+import '../Library/SourceError.dart';
+import 'VocabDialogs.dart';
 import 'VocabModel.dart';
-import 'main.dart';
+import '../main.dart';
 
 typedef ModelOrError = Result<VocabModel, SourceError>;
 
@@ -23,34 +20,6 @@ const lightFont = TextStyle(fontWeight: FontWeight.w300);
 const italicFont = TextStyle(fontWeight: FontWeight.w300, fontStyle: FontStyle.italic);
 const boldFont = TextStyle(fontWeight: FontWeight.bold);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
-
-final fileResultProvider = FutureProvider<ModelOrError>((ref) async {
-  final sourceName = ref.watch(vocabularyNameProvider);
-
-  var lines = sourceName == serialName
-      ? GetIt.I<ISerializer>().loadVocabulary()
-      : sourceName == completeName
-          ? GetIt.I<ISource>().loadComplete()
-          : GetIt.I<ISource>().loadVocabulary(sourceName);
-
-  var items = await lines.map((e) => Item(e)).toList();
-  if (sourceName == completeName) items = Item.makeUnique(items).toList();
-
-  final err = SourceError.any(sourceName, items);
-  if (err != null) return ModelOrError.error(err);
-
-  Item.addSecondary(items);
-  Item.addSynonyms(items);
-
-  final serializer = GetIt.I<ISerializer>();
-  final model = VocabModel(sourceName, items, serializer);
-  return ModelOrError.value(model);
-});
-
-final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
-  var model = ref.watch(fileResultProvider).value;
-  return model!.value!;
-});
 
 class VocabView extends ConsumerWidget {
   const VocabView({Key? key}) : super(key: key);
@@ -142,86 +111,6 @@ class VocabView extends ConsumerWidget {
     );
   }
 
-  void _settings(BuildContext context, VocabModel model) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-              child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Iteration Order:", textScaleFactor: 1.75, style: lightFont),
-                      ToggleSwitch(
-                        totalSwitches: 2,
-                        labels: const ['Sequential', 'Random'],
-                        onToggle: (index) => model.setIterationMode(index!),
-                        initialLabelIndex: model.iterationMode.index,
-                      ),
-                      const Text(""),
-                      const Text("Display Order:", textScaleFactor: 1.75, style: lightFont),
-                      ToggleSwitch(
-                        totalSwitches: 4,
-                        labels: const ['He', 'Eng', 'Random', 'Both'],
-                        onToggle: (index) => model.setDisplayMode(index!),
-                        initialLabelIndex: model.displayMode.index,
-                      ),
-                      const Text(""),
-                      const Text("Show Nikud:", textScaleFactor: 1.75, style: lightFont),
-                      ToggleSwitch(
-                        totalSwitches: 2,
-                        labels: const ['א', '∵'],
-                        onToggle: (index) => model.setShowNikud(index!),
-                        initialLabelIndex: model.showNikud ? 1 : 0,
-                      ),
-                    ],
-                  )));
-        });
-  }
-
-  void _about(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-              child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Mikhail Poda\r\nOctober 2022\r\nBraunschweig, Germany\r\n",
-                          textScaleFactor: 1.75, style: lightFont),
-                      TextButton(
-                          onPressed: () => launchUrlString(uri),
-                          child: const Text(
-                            "vocabulary source",
-                            textScaleFactor: 1.75,
-                            style: linkFont,
-                          )),
-                      TextButton(
-                          onPressed: () => launchUrlString("mailto:mikhail.poda@gmail.com"),
-                          child: const Text(
-                            "mikhail.poda@gmail.com",
-                            textScaleFactor: 1.75,
-                            style: linkFont,
-                          )),
-                      TextButton(
-                          onPressed: () => launchUrlString("https://github.com/mikhail-poda/mila"),
-                          child: const Text(
-                            "https://github.com/mikhail-poda/mila",
-                            textScaleFactor: 1.75,
-                            style: linkFont,
-                          )),
-                    ],
-                  )));
-        });
-  }
-
   Widget _body(BuildContext context, VocabModel model) {
     return Padding(
         padding: const EdgeInsets.all(10),
@@ -281,7 +170,7 @@ class VocabView extends ConsumerWidget {
 
   Widget statWidget(BuildContext context, List<Item> items, IconData icon, Color color) {
     return TextButton(
-      onPressed: () => statDisplay(context, items),
+      onPressed: () => VocabDialogs.statDialog(context, items),
       child: Row(children: <Widget>[
         Icon(icon, size: 20, color: Colors.black54),
         Text(' ${items.length}', textScaleFactor: 1.5, style: TextStyle(color: color))
@@ -398,72 +287,13 @@ class VocabView extends ConsumerWidget {
   }
 
   void _menuSelection(int value, BuildContext context, VocabModel model) {
-    if (value == 2) _settings(context, model);
-    if (value == 3) _about(context);
+    if (value == 2) VocabDialogs.settingsDialog(context, model);
+    if (value == 3) VocabDialogs.aboutDialog(context);
     if (value == 4) model.nextItem(DataModelSettings.tailLevel);
     if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
     if (value == 6) model.prevItem();
-    if (value == 7) _resetAll(context, model);
+    if (value == 7) VocabDialogs.resetAllDialog(context, model);
     if (value == 8) model.nextItem(DataModelSettings.undoneLevel);
     if (value == 9) model.resetItems((item) => item.level == DataModelSettings.hiddenLevel);
-  }
-
-  void _resetAll(BuildContext context, VocabModel model) async {
-    bool result = await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Confirmation', textScaleFactor: 1.5),
-          content: const Text('Do you want to reset all items?', textScaleFactor: 1.5),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true)
-                    .pop(false); // dismisses only the dialog and returns false
-              },
-              child: const Text('No', textScaleFactor: 1.5),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true)
-                    .pop(true); // dismisses only the dialog and returns true
-              },
-              child: const Text('Yes', textScaleFactor: 1.5),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result) model.resetItems((i) => true);
-  }
-
-  statDisplay(BuildContext context, List<Item> items) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-              child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SingleChildScrollView(
-                      child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        items.select((i, j) => i.he0).join('\n'),
-                        textDirection: TextDirection.rtl,
-                        overflow: TextOverflow.clip,
-                        textScaleFactor: 1.25,
-                      ),
-                      Text(
-                        items.select((i, j) => '  ${i.eng0}').join('\n'),
-                        overflow: TextOverflow.clip,
-                        textScaleFactor: 1.25,
-                      )
-                    ],
-                  ))));
-        });
   }
 }

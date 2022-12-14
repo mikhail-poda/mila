@@ -3,10 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
-import 'DataModel.dart';
-import 'ISerializer.dart';
-import 'Item.dart';
-import 'Library.dart';
+import '../Data/AbstractDataModel.dart';
+import '../Data/DataModelSettings.dart';
+import '../Data/RandomDataModel.dart';
+import '../Data/SequentialDataModel.dart';
+import '../IO/ISerializer.dart';
+import '../Data/Item.dart';
+import '../Library/Library.dart';
 
 enum GuessMode { he, eng }
 

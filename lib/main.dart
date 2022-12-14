@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
-import 'package:mila/WebSerializer.dart';
-import 'package:mila/WebSource.dart';
-import 'ISerializer.dart';
+import 'package:mila/IO/WebSerializer.dart';
+import 'package:mila/IO/WebSource.dart';
+import 'IO/ISerializer.dart';
 import 'Constants.dart';
-import 'SourcesView.dart';
+import 'Sources/SourcesView.dart';
 
 void main() async {
   WebSerializer.init();

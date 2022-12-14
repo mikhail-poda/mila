@@ -1,9 +1,9 @@
 import 'package:intl/intl.dart';
-import 'package:mila/DataModel.dart';
-import 'package:mila/Item.dart';
-import 'ISerializer.dart';
-import 'Library.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import '../Data/DataModelSettings.dart';
+import '../Data/Item.dart';
+import 'ISerializer.dart';
 
 class WebSerializer implements ISerializer {
   static const _txtBox = 'text.3';

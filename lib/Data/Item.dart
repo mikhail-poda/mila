@@ -1,8 +1,8 @@
 import 'package:darq/darq.dart';
 import 'package:collection/collection.dart' show IterableZip;
 
-import 'DataModel.dart';
-import 'Library.dart';
+import '../Library/Library.dart';
+import 'DataModelSettings.dart';
 
 class Item {
   DateTime? lastUse;

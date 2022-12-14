@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:mila/Item.dart';
-import 'package:mila/WinSource.dart';
 import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
-import 'Constants.dart';
+import '../Data/Item.dart';
+import '../Constants.dart';
 import 'ISerializer.dart';
+import 'WinSource.dart';
 
 typedef Kvp = Tuple2<String, int>;
 
