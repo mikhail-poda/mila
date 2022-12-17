@@ -8,6 +8,8 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   AbstractDataModel(this._items);
 
+  int? get pendingNo => null;
+
   Item operator [](int index) => _items[index];
 
   @override

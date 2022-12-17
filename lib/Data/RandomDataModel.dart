@@ -37,6 +37,10 @@ class RandomDataModel extends AbstractDataModel {
   }
 
   @override
+  int? get pendingNo =>
+      where((item) => item.level >= DataModelSettings.maxLevel && !_excluded.contains(item)).length;
+
+  @override
   Item? nextItem(Item? current) {
     // once per hour reload easy (done) items
     if (_lastReset!.add(const Duration(hours: 1)).isBefore(DateTime.now())) {
@@ -82,11 +86,10 @@ class RandomDataModel extends AbstractDataModel {
     item.lastUse = DateTime.now();
 
     // do no use these items any more in this session
+    if (item.level < DataModelSettings.maxLevel) _excluded.remove(item);
     if (item.level >= DataModelSettings.maxLevel) _excluded.add(item);
+    if (item.level == DataModelSettings.tailLevel) _excluded.add(item);
     if (item.level == DataModelSettings.hiddenLevel) _excluded.add(item);
-    if (item.level == DataModelSettings.tailLevel) {
-      _excluded.add(item);
-    }
   }
 
   @override

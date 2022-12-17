@@ -40,6 +40,7 @@ class VocabView extends ConsumerWidget {
 
   Scaffold _buildScaffold(
       BuildContext context, WidgetRef ref, Result<VocabModel, SourceError> result) {
+    //---------------------- ERROR VIEW ----------------------
     if (!result.hasValue) {
       var error = result.error!;
       return Scaffold(
@@ -61,6 +62,7 @@ class VocabView extends ConsumerWidget {
     var model = ref.watch(vocabProvider);
     model.initialize();
 
+    //----------------------  NOTHING TO LEARN VIEW ----------------------
     if (!model.hasItem) {
       return Scaffold(
           appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
@@ -75,6 +77,7 @@ class VocabView extends ConsumerWidget {
           )));
     }
 
+    //----------------------  MAIN VIEW ----------------------
     return Scaffold(
         appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
           _menu(context, model),
@@ -116,18 +119,32 @@ class VocabView extends ConsumerWidget {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            Row(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                statWidget(context, model.count1, Icons.do_disturb_on_outlined, Colors.black38),
-                const Expanded(child: Text("")),
-                statWidget(context, model.count2, Icons.hourglass_empty_sharp, Colors.black45),
-                const Expanded(child: Text("")),
-                statWidget(context, model.count3, Icons.repeat, Colors.orange),
-                const Expanded(child: Text("")),
-                statWidget(context, model.count4, Icons.done, Colors.green),
-                const Expanded(child: Text("")),
-                statWidget(context, model.count5, Icons.done_all, Colors.lightGreen),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    statWidget(context, model.count1, Icons.do_disturb_on_outlined, Colors.black38),
+                    const Expanded(child: Text("")),
+                    statWidget(context, model.count2, Icons.hourglass_empty_sharp, Colors.black45),
+                    const Expanded(child: Text("")),
+                    statWidget(context, model.count3, Icons.repeat, Colors.orange),
+                    const Expanded(child: Text("")),
+                    statWidget(context, model.count4, Icons.done, Colors.green),
+                    const Expanded(child: Text("")),
+                    statWidget(context, model.count5, Icons.done_all, Colors.lightGreen),
+                  ],
+                ),
+                Text(
+                  (model.pendingNo == null || model.pendingNo == 0)
+                      ? ''
+                      : model.pendingNo.toString(),
+                  textScaleFactor: 4,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.black12),
+                )
               ],
             ),
             Expanded(

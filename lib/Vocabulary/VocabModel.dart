@@ -74,6 +74,8 @@ class VocabModel extends ChangeNotifier {
 
   int get length => _model.length;
 
+  int? get pendingNo => _model.pendingNo;
+
   List<Item> get count1 =>
       _model.where((element) => element.level == DataModelSettings.hiddenLevel).toList();
 
