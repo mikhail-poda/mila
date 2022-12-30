@@ -19,7 +19,7 @@ class SourceError {
     var repetitions = <Item>[];
 
     for (var item in items) {
-      var key = item.Id;
+      var key = item.id;
       if (hmap.containsKey(key)) {
         var master = hmap[key]!;
         if (!repetitions.contains(master)) repetitions.add(master);
@@ -29,18 +29,18 @@ class SourceError {
       }
     }
 
-    var num = repetitions.distinct((e) => e.Id).length;
+    var num = repetitions.distinct((e) => e.id).length;
     if (num != 0) {
       var msg = 'Error: $num repetitions found.';
-      var dsc = repetitions.select((i, j) => '${i.he0}   ${i.eng0}').join('\n');
+      var dsc = repetitions.select((i, j) => '${i.target}   ${i.translation}').join('\n');
 
       return SourceError(name, items.length, msg, dsc);
     }
 
-    var commas = items.where((element) => element.he0.contains(',')).toList();
+    var commas = items.where((element) => element.target.contains(',')).toList();
     if (commas.isNotEmpty) {
       var msg = 'Error: ${commas.length} entries contain commas.';
-      var dsc = commas.select((i, j) => '${i.he0}   ${i.eng0}').join('\n');
+      var dsc = commas.select((i, j) => '${i.target}   ${i.translation}').join('\n');
 
       return SourceError(name, items.length, msg, dsc);
     }

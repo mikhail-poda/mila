@@ -12,7 +12,7 @@ const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w3
 
 class VocabDialogs {
   static statDialog(BuildContext context, List<Item> items) {
-    var sorted = items.take(100).orderBy((item) => item.Id).toList();
+    var sorted = items.take(100).orderBy((item) => item.id).toList();
 
     showDialog(
         context: context,
@@ -27,13 +27,13 @@ class VocabDialogs {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        sorted.select((i, j) => i.he0).join('\n'),
+                        sorted.select((i, j) => i.target).join('\n'),
                         textDirection: TextDirection.rtl,
                         overflow: TextOverflow.clip,
                         textScaleFactor: 1.25,
                       ),
                       Text(
-                        sorted.select((i, j) => '  ${i.eng0}').join('\n'),
+                        sorted.select((i, j) => '  ${i.translation}').join('\n'),
                         overflow: TextOverflow.clip,
                         textScaleFactor: 1.25,
                       )
@@ -150,5 +150,30 @@ class VocabDialogs {
     );
 
     if (result) model.resetItems((i) => true);
+  }
+
+  static void exported(BuildContext context, int num) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text("Exported $num vocables"),
+              ));
+        });
+  }
+
+  static void imported(BuildContext context, Future<int> import) async {
+    var num = await import;
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text("Imported $num vocables"),
+          ));
+        });
   }
 }

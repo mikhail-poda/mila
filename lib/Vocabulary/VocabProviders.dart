@@ -22,20 +22,20 @@ final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
 });
 
 Future<ModelOrError> _getVocabModel(String sourceName) async {
-  var lines = sourceName == serialName
+  var source = sourceName == serialName
       ? GetIt.I<ISerializer>().loadVocabulary()
       : sourceName == completeName
-      ? GetIt.I<ISource>().loadComplete()
-      : GetIt.I<ISource>().loadVocabulary(sourceName);
+          ? GetIt.I<ISource>().loadComplete()
+          : GetIt.I<ISource>().loadVocabulary(sourceName);
 
-  var items = await lines.map((e) => Item(e)).toList();
-  if (sourceName == completeName) items = Item.makeUnique(items).toList();
+  var items = source.toList();
+  if (sourceName == completeName) items = makeUnique(items).toList();
 
   final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 
-  Item.addSecondary(items);
-  Item.addSynonyms(items);
+  addSecondary(items);
+  addSynonyms(items);
 
   final serializer = GetIt.I<ISerializer>();
   final model = VocabModel(sourceName, items, serializer);

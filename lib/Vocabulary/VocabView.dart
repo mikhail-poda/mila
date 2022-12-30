@@ -94,22 +94,25 @@ class VocabView extends ConsumerWidget {
       itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
         const PopupMenuItem<int>(
           value: 1,
-          enabled: false,
-          child: Text('Download vocabulary'),
+          child: Text('Export vocabulary'),
         ),
-        const PopupMenuItem<int>(value: 2, child: Text('Settings')),
-        const PopupMenuItem<int>(value: 3, child: Text('About')),
+        const PopupMenuItem<int>(
+          value: 2,
+          child: Text('Import vocabulary'),
+        ),
+        const PopupMenuItem<int>(value: 3, child: Text('Show settings')),
+        const PopupMenuItem<int>(value: 4, child: Text('About')),
         PopupMenuItem<int>(
-            value: 4,
+            value: 5,
             enabled: model.isComplete,
             child: const Text('Move item to the end of the list')),
-        PopupMenuItem<int>(value: 5, enabled: model.isComplete, child: const Text('Hide item')),
+        PopupMenuItem<int>(value: 6, enabled: model.isComplete, child: const Text('Hide item')),
         PopupMenuItem<int>(
-            value: 6, enabled: model.hasPrevious, child: const Text('Previous item')),
-        const PopupMenuItem<int>(value: 7, child: Text('Reset all items')),
+            value: 7, enabled: model.hasPrevious, child: const Text('Previous item')),
+        const PopupMenuItem<int>(value: 8, child: Text('Reset all items')),
         PopupMenuItem<int>(
-            value: 8, enabled: model.isComplete, child: const Text('Reset this item')),
-        const PopupMenuItem<int>(value: 9, child: Text('Reset hidden items')),
+            value: 9, enabled: model.isComplete, child: const Text('Reset this item')),
+        const PopupMenuItem<int>(value: 10, child: Text('Reset hidden items')),
       ],
     );
   }
@@ -158,17 +161,17 @@ class VocabView extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Expanded(child: Text("")),
-                      textLink('פ', 'https://www.pealim.com/search/?q=${model.currentItem!.Id}'),
+                      textLink('פ', 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
                       const Expanded(child: Text("")),
-                      textLink('m', 'https://www.morfix.co.il/${model.currentItem!.Id}'),
+                      textLink('m', 'https://www.morfix.co.il/${model.currentItem!.target}'),
                       const Expanded(child: Text("")),
-                      textLink('מ', 'https://milog.co.il/${model.currentItem!.Id}'),
+                      textLink('מ', 'https://milog.co.il/${model.currentItem!.target}'),
                       const Expanded(child: Text("")),
                       textLink('g',
-                          'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.Id}'),
+                          'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
                       const Expanded(child: Text("")),
                       textLink('r',
-                          'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.Id}'),
+                          'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.target}'),
                       const Expanded(child: Text(""))
                     ],
                   )
@@ -220,7 +223,7 @@ class VocabView extends ConsumerWidget {
               style: lightFont,
             )),
       Text(
-        model.heng0,
+        model.phonetic,
         textScaleFactor: 1.75,
         overflow: TextOverflow.clip,
         style: italicFont,
@@ -304,13 +307,15 @@ class VocabView extends ConsumerWidget {
   }
 
   void _menuSelection(int value, BuildContext context, VocabModel model) {
-    if (value == 2) VocabDialogs.settingsDialog(context, model);
-    if (value == 3) VocabDialogs.aboutDialog(context);
-    if (value == 4) model.nextItem(DataModelSettings.tailLevel);
-    if (value == 5) model.nextItem(DataModelSettings.hiddenLevel);
-    if (value == 6) model.prevItem();
-    if (value == 7) VocabDialogs.resetAllDialog(context, model);
-    if (value == 8) model.nextItem(DataModelSettings.undoneLevel);
-    if (value == 9) model.resetItems((item) => item.level == DataModelSettings.hiddenLevel);
+    if (value == 1) VocabDialogs.exported(context, model.export());
+    if (value == 2) VocabDialogs.imported(context, model.import());
+    if (value == 3) VocabDialogs.settingsDialog(context, model);
+    if (value == 4) VocabDialogs.aboutDialog(context);
+    if (value == 5) model.nextItem(DataModelSettings.tailLevel);
+    if (value == 6) model.nextItem(DataModelSettings.hiddenLevel);
+    if (value == 7) model.prevItem();
+    if (value == 8) VocabDialogs.resetAllDialog(context, model);
+    if (value == 9) model.nextItem(DataModelSettings.undoneLevel);
+    if (value == 10) model.resetItems((item) => item.level == DataModelSettings.hiddenLevel);
   }
 }

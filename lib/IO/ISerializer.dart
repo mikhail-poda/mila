@@ -1,11 +1,11 @@
 import '../Data/Item.dart';
 
 abstract class ISource {
-  Future<List<String>> getVocabularies();
+  Stream<String> getVocabularies();
 
-  Stream<List<String>> loadVocabulary(String fileName);
+  Iterable<Item> loadVocabulary(String fileName);
 
-  Stream<List<String>> loadComplete();
+  Iterable<Item> loadComplete();
 }
 
 abstract class ISerializer {
@@ -13,5 +13,9 @@ abstract class ISerializer {
 
   void sync(List<Item> items);
 
-  Stream<List<String>> loadVocabulary();
+  int export();
+
+  Future<int> import();
+
+  Iterable<Item> loadVocabulary();
 }

@@ -8,10 +8,9 @@ final vocabulariesListProvider = FutureProvider<List<String>>((ref) async => get
 final vocabularyNameProvider = StateProvider<String>((ref) => "");
 
 Future<List<String>> getVocabularies() async {
-  var list0 = await GetIt.I<ISource>().getVocabularies();
-  var list1 = list0.toList(); // add new item to a new list
+  var list = await GetIt.I<ISource>().getVocabularies().toList(); // add new item to a new list
 
-  list1.insert(0, completeName);
-  list1.insert(1, serialName);
-  return list1;
+  list.insert(0, completeName);
+  list.insert(1, serialName);
+  return list;
 }

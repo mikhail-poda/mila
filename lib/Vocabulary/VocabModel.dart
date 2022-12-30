@@ -100,7 +100,7 @@ class VocabModel extends ChangeNotifier {
   String get he0 {
     if (!_showHe || _current == null) return "";
 
-    var str = _current!.he0;
+    var str = _current!.target;
     if (!_showNikud) str = haserNikud(str);
 
     return str;
@@ -109,12 +109,12 @@ class VocabModel extends ChangeNotifier {
   String get eng0 {
     if (!_showEng || _current == null) return "";
 
-    return _current!.eng0;
+    return _current!.translation;
   }
 
   String get he1 {
     if (!_isComplete || _current == null) return "";
-    return _current!.he1;
+    return _current!.addTarget;
   }
 
   bool get hasEng1 {
@@ -123,22 +123,22 @@ class VocabModel extends ChangeNotifier {
 
   String get eng1 {
     if (!_isComplete || _current == null) return "";
-    return _current!.eng1;
+    return _current!.addTranslation;
   }
 
   String get he2 {
     if (!_isComplete || _current == null) return "";
-    return _current!.he2;
+    return _current!.longTarget;
   }
 
   String get eng2 {
     if (!_isComplete || _current == null) return "";
-    return _current!.eng2;
+    return _current!.longTranslation;
   }
 
-  String get heng0 {
+  String get phonetic {
     if (!_isComplete || _current == null) return "";
-    return _current!.heng0;
+    return _current!.phonetic;
   }
 
   //---------------------------------[ commands ]---------------------------------
@@ -230,4 +230,8 @@ class VocabModel extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  int export() => _serializer.export();
+
+  Future<int> import() => _serializer.import();
 }
