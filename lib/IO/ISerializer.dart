@@ -1,4 +1,5 @@
 import '../Data/Item.dart';
+import 'Settings.dart';
 
 abstract class ISource {
   Stream<String> getVocabularies();
@@ -18,4 +19,8 @@ abstract class ISerializer {
   Future<int> import();
 
   Iterable<Item> loadVocabulary();
+
+  Settings getSettings();
+
+  setSettings(Settings settings);
 }

@@ -8,14 +8,11 @@ import '../Data/DataModelSettings.dart';
 import '../Data/RandomDataModel.dart';
 import '../Data/SequentialDataModel.dart';
 import '../IO/ISerializer.dart';
+import '../IO/Settings.dart';
 import '../Data/Item.dart';
 import '../Library/Library.dart';
 
 enum GuessMode { he, eng }
-
-enum IterationMode { sequential, random }
-
-enum DisplayMode { he, eng, random, complete }
 
 class VocabModel extends ChangeNotifier {
   Item? _current;
@@ -23,11 +20,9 @@ class VocabModel extends ChangeNotifier {
 
   final _stack = <Item>[];
 
+  late Settings _settings;
   late ISerializer _serializer;
   late AbstractDataModel _model;
-
-  bool get showNikud => _showNikud;
-  bool _showNikud = true;
 
   // transaction
   bool get isComplete => _isComplete;
@@ -37,19 +32,10 @@ class VocabModel extends ChangeNotifier {
   GuessMode get guessMode => _guessMode;
   GuessMode _guessMode = GuessMode.he;
 
-  // settings
-  DisplayMode get displayMode => _displayMode;
-  DisplayMode _displayMode = DisplayMode.eng;
-
-  // settings
-  IterationMode get iterationMode => _iterationMode;
-  IterationMode _iterationMode = IterationMode.random;
-
   String get sourceName => _sourceName;
   late String _sourceName;
 
   late List<Item> _items;
-  final DataModelSettings _settings = DataModelSettings();
 
   bool _showHe = false;
   bool _showEng = false;
@@ -62,11 +48,17 @@ class VocabModel extends ChangeNotifier {
 
   VocabModel(String sourceName, List<Item> items, ISerializer serializer) {
     _sourceName = p.basename(sourceName);
+    _settings = serializer.getSettings();
     _items = items;
 
     serializer.sync(_items);
 
-    setIterationMode(_iterationMode.index);
+    if (_settings.iterationMode == IterationMode.sequential) {
+      _model = SequentialDataModel(_items);
+    } else {
+      _model = RandomDataModel(_items);
+    }
+
     _serializer = serializer;
   }
 
@@ -101,7 +93,7 @@ class VocabModel extends ChangeNotifier {
     if (!_showHe || _current == null) return "";
 
     var str = _current!.target;
-    if (!_showNikud) str = haserNikud(str);
+    if (!_settings.showNikud) str = haserNikud(str);
 
     return str;
   }
@@ -149,11 +141,6 @@ class VocabModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  setShowNikud(int nikud) {
-    _showNikud = (nikud == 1);
-    notifyListeners();
-  }
-
   void nextItem(int value) {
     if (_current != null) {
       _model.setLevel(_current!, value);
@@ -178,22 +165,6 @@ class VocabModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setIterationMode(int value) {
-    _iterationMode = IterationMode.values[value];
-
-    if (_iterationMode == IterationMode.sequential) {
-      _model = SequentialDataModel(_items);
-    } else {
-      _model = RandomDataModel(_items);
-    }
-  }
-
-  void setDisplayMode(int value) {
-    _displayMode = DisplayMode.values[value];
-    _prepareTransaction(_isComplete);
-    notifyListeners();
-  }
-
   void initialize() {
     if (_current != null) return;
     _current = _model.nextItem(null);
@@ -201,9 +172,10 @@ class VocabModel extends ChangeNotifier {
   }
 
   void _prepareTransaction(bool isComplete) {
-    _isComplete = isComplete || _displayMode == DisplayMode.complete;
+    _isComplete = isComplete || _settings.displayMode == DisplayMode.complete;
+
     if (!_isComplete) {
-      switch (_displayMode) {
+      switch (_settings.displayMode) {
         case DisplayMode.he:
           _guessMode = GuessMode.he;
           break;
@@ -230,8 +202,4 @@ class VocabModel extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  int export() => _serializer.export();
-
-  Future<int> import() => _serializer.import();
 }

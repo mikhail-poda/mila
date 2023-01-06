@@ -7,7 +7,6 @@ import 'DataModelSettings.dart';
 import 'Item.dart';
 
 class RandomDataModel extends AbstractDataModel {
-  late List<Item> _ordered;
   final _last = Queue<Item>();
   final _random = Random();
   final _excluded = HashSet<Item>();
@@ -16,11 +15,6 @@ class RandomDataModel extends AbstractDataModel {
 
   RandomDataModel(List<Item> items) : super(items) {
     _updateExcludedList();
-
-    // items must have same order if there are many "again" items, so that always same items are
-    // being repeated; but at the same time items must be randomized because the original list
-    // is mostly sorted alphabetically
-    _ordered = items.orderBy((item) => item.id.hashCode).toList();
   }
 
   void _updateExcludedList() {
@@ -58,7 +52,7 @@ class RandomDataModel extends AbstractDataModel {
 
     var hset = HashSet.of(_last);
 
-    var items = _ordered
+    var items = this
         .where((item) => !_excluded.contains(item))
         .where((item) => !hset.contains(item))
         .orderByDescending((item) => item.level)

@@ -5,7 +5,7 @@ import 'package:mila/IO/HiveSerializer.dart';
 import 'package:mila/IO/WebSource.dart';
 import 'IO/ISerializer.dart';
 import 'Constants.dart';
-import 'Sources/SourcesView.dart';
+import 'Page.Sources/SourcesView.dart';
 
 void main() async {
   HiveSerializer.init();

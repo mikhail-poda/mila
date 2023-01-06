@@ -5,7 +5,7 @@ import 'package:file_picker/file_picker.dart';
 
 import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:mila/IO/HiveObsolete.dart';
+import 'package:mila/IO/Settings.dart';
 
 import '../Data/DataModelSettings.dart';
 import '../Data/Item.dart';
@@ -15,12 +15,18 @@ import 'SerialItem.dart';
 
 class HiveSerializer implements ISerializer {
   final _formatter = DateFormat('yyyy.MM.dd');
-  static late Box<SerialItem> _box;
+
+  static late Box<SerialItem> _itemsBox;
+  static late Box<Settings> _settingsBox;
 
   static init() async {
     await Hive.initFlutter();
+
+    Hive.registerAdapter(SettingsAdapter());
     Hive.registerAdapter(SerialItemAdapter());
-    _box = await Hive.openBox<SerialItem>('ItemBox.1');
+
+    _settingsBox = await Hive.openBox<Settings>('SettingsBox.1');
+    _itemsBox = await Hive.openBox<SerialItem>('ItemBox.1');
 
     //await HiveObsolete.init();
   }
@@ -32,7 +38,7 @@ class HiveSerializer implements ISerializer {
     //_importLines(lines);
 
     for (var item in items) {
-      var obj = _box.get(item.id);
+      var obj = _itemsBox.get(item.id);
       if (obj == null) continue;
 
       item.level = obj.level;
@@ -43,26 +49,26 @@ class HiveSerializer implements ISerializer {
   @override
   void push(Item item) async {
     if (item.level == DataModelSettings.undoneLevel) {
-      _box.delete(item.id);
+      _itemsBox.delete(item.id);
       return;
     } else {
       var obj = SerialItem.init(
           item.identifier, item.target, item.translation, item.level, item.lastUse, item.phonetic);
-      _box.put(item.id, obj);
+      _itemsBox.put(item.id, obj);
     }
   }
 
   @override
   Iterable<Item> loadVocabulary() sync* {
-    for (var obj in _box.values) {
-      yield AdditionalItem(obj.identifier, obj.target, obj.translation);
+    for (var obj in _itemsBox.values) {
+      yield AdditionalItem(obj.identifier, obj.target, obj.translation, obj.phonetic);
     }
   }
 
   List<String> asLines() {
     var buf = <String>['identifier\ttarget\ttranslation\tlevel\tlast_use\tphonetic'];
 
-    for (var obj in _box.values) {
+    for (var obj in _itemsBox.values) {
       buf.add(
           '${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t${obj.lastUse}\t${obj.phonetic}');
     }
@@ -116,9 +122,21 @@ class HiveSerializer implements ISerializer {
       var phonetic = mapper.phonetic < 0 ? '' : cell[mapper.phonetic];
 
       var obj = SerialItem.init(identifier, target, translation, level, lastUse, phonetic);
-      _box.put(obj.id, obj);
+      _itemsBox.put(obj.id, obj);
     }
     return num;
+  }
+
+  @override
+  Settings getSettings() {
+    return _settingsBox.isEmpty
+        ? Settings.init(IterationMode.random, DisplayMode.eng, true)
+        : _settingsBox.get(0)!;
+  }
+
+  @override
+  setSettings(Settings settings) {
+    _settingsBox.put(0, settings);
   }
 }
 

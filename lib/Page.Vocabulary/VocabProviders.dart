@@ -6,7 +6,7 @@ import '../IO/ISerializer.dart';
 import '../Data/Item.dart';
 import '../Library/Result.dart';
 import '../Data/SourceError.dart';
-import '../Sources/SourcesProviders.dart';
+import '../Page.Sources/SourcesProviders.dart';
 import 'VocabModel.dart';
 
 typedef ModelOrError = Result<VocabModel, SourceError>;

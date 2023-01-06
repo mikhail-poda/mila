@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mila/Vocabulary/VocabProviders.dart';
+import 'package:mila/Page.Vocabulary/VocabProviders.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../Data/DataModelSettings.dart';
@@ -46,12 +46,9 @@ class VocabView extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(title: Text('${error.name} 〈${error.length}〉')),
         body: Center(
-            child: Text(
-          error.description,
-          textScaleFactor: 2,
-          style: lightFont,
-          textAlign: TextAlign.center,
-        )),
+            child: SingleChildScrollView(
+                child: Text(error.description,
+                    textScaleFactor: 1.5, style: lightFont, textAlign: TextAlign.center))),
         bottomNavigationBar: Text(error.message,
             textScaleFactor: 2,
             textAlign: TextAlign.center,
@@ -79,9 +76,9 @@ class VocabView extends ConsumerWidget {
 
     //----------------------  MAIN VIEW ----------------------
     return Scaffold(
-        appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
-          _menu(context, model),
-        ]),
+        appBar: AppBar(
+            title: Text('${model.sourceName} 〈${model.length}〉'),
+            actions: <Widget>[_menu(context, model)]),
         body: _body(context, model),
         bottomNavigationBar: _buttons(model));
   }
@@ -92,27 +89,17 @@ class VocabView extends ConsumerWidget {
       child:
           const Padding(padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
       itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
-        const PopupMenuItem<int>(
-          value: 1,
-          child: Text('Export vocabulary'),
-        ),
-        const PopupMenuItem<int>(
-          value: 2,
-          child: Text('Import vocabulary'),
-        ),
-        const PopupMenuItem<int>(value: 3, child: Text('Show settings')),
-        const PopupMenuItem<int>(value: 4, child: Text('About')),
         PopupMenuItem<int>(
-            value: 5,
+            value: 0,
             enabled: model.isComplete,
             child: const Text('Move item to the end of the list')),
-        PopupMenuItem<int>(value: 6, enabled: model.isComplete, child: const Text('Hide item')),
+        PopupMenuItem<int>(value: 1, enabled: model.isComplete, child: const Text('Hide item')),
         PopupMenuItem<int>(
-            value: 7, enabled: model.hasPrevious, child: const Text('Previous item')),
-        const PopupMenuItem<int>(value: 8, child: Text('Reset all items')),
+            value: 2, enabled: model.hasPrevious, child: const Text('Previous item')),
+        const PopupMenuItem<int>(value: 3, child: Text('Reset all items')),
         PopupMenuItem<int>(
-            value: 9, enabled: model.isComplete, child: const Text('Reset this item')),
-        const PopupMenuItem<int>(value: 10, child: Text('Reset hidden items')),
+            value: 4, enabled: model.isComplete, child: const Text('Reset this item')),
+        const PopupMenuItem<int>(value: 5, child: Text('Reset hidden items')),
       ],
     );
   }
@@ -161,7 +148,8 @@ class VocabView extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Expanded(child: Text("")),
-                      textLink('פ', 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
+                      textLink(
+                          'פ', 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
                       const Expanded(child: Text("")),
                       textLink('m', 'https://www.morfix.co.il/${model.currentItem!.target}'),
                       const Expanded(child: Text("")),
@@ -286,9 +274,9 @@ class VocabView extends ConsumerWidget {
               )
             ]
           : <Widget>[
-              customButton(model, DataModelSettings.value1, Colors.orange),
-              customButton(model, DataModelSettings.value2, Colors.lightBlueAccent),
-              customButton(model, DataModelSettings.value3, Colors.green),
+              customButton(model, DataModelSettings.valueAgain, Colors.orange),
+              customButton(model, DataModelSettings.valueGood, Colors.lightBlueAccent),
+              customButton(model, DataModelSettings.valueEasy, Colors.green),
             ],
     );
   }
@@ -307,15 +295,11 @@ class VocabView extends ConsumerWidget {
   }
 
   void _menuSelection(int value, BuildContext context, VocabModel model) {
-    if (value == 1) VocabDialogs.exported(context, model.export());
-    if (value == 2) VocabDialogs.imported(context, model.import());
-    if (value == 3) VocabDialogs.settingsDialog(context, model);
-    if (value == 4) VocabDialogs.aboutDialog(context);
-    if (value == 5) model.nextItem(DataModelSettings.tailLevel);
-    if (value == 6) model.nextItem(DataModelSettings.hiddenLevel);
-    if (value == 7) model.prevItem();
-    if (value == 8) VocabDialogs.resetAllDialog(context, model);
-    if (value == 9) model.nextItem(DataModelSettings.undoneLevel);
-    if (value == 10) model.resetItems((item) => item.level == DataModelSettings.hiddenLevel);
+    if (value == 0) model.nextItem(DataModelSettings.tailLevel);
+    if (value == 1) model.nextItem(DataModelSettings.hiddenLevel);
+    if (value == 2) model.prevItem();
+    if (value == 3) VocabDialogs.resetAllDialog(context, model);
+    if (value == 4) model.nextItem(DataModelSettings.undoneLevel);
+    if (value == 5) model.resetItems((item) => item.level == DataModelSettings.hiddenLevel);
   }
 }

@@ -53,10 +53,7 @@ class WebSource implements ISource {
   Iterable<List<String>> geRows(List<Element> rlist) sync* {
     for (var element in rlist) {
       var cell = readRow(element);
-      if (cell.length < 2) continue;
-      if (cell[0].isEmpty || cell[1].isEmpty) continue;
-
-      yield cell;
+      if (cell.length >= 2) yield cell;
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 
 import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:mila/IO/Settings.dart';
 
 import '../Data/DataModelSettings.dart';
 import '../Data/Item.dart';
@@ -65,7 +66,7 @@ class HiveObsolete implements ISerializer {
       final cell = str.split('#');
       if (cell[0].contains(',') || cell[0].contains('/')) continue;
 
-      yield AdditionalItem('', cell[0], cell[1]);
+      yield AdditionalItem('', cell[0], cell[1], '');
     }
   }
 
@@ -132,5 +133,17 @@ class HiveObsolete implements ISerializer {
     }
 
     return Future<int>.value(num);
+  }
+
+  @override
+  Settings getSettings() {
+    // TODO: implement getSettings
+    throw UnimplementedError();
+  }
+
+  @override
+  setSettings(Settings settings) {
+    // TODO: implement setSettings
+    throw UnimplementedError();
   }
 }

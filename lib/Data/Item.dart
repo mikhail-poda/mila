@@ -27,7 +27,8 @@ class Mapper {
     if (phonetic == -1) phonetic = line.indexWhere((str) => str.startsWith('pho_'));
     if (translation == -1) translation = line.indexWhere((str) => str.startsWith('tra_'));
     if (addTranslation == -1) addTranslation = line.indexWhere((str) => str.startsWith('add_tra_'));
-    if (longTranslation == -1) longTranslation = line.indexWhere((str) => str.startsWith('long_tra_'));
+    if (longTranslation == -1)
+      longTranslation = line.indexWhere((str) => str.startsWith('long_tra_'));
   }
 }
 
@@ -56,12 +57,17 @@ abstract class Item {
   String get longTarget => '';
 
   String get longTranslation => '';
+
+  Item() {
+    _id = haserNikud(target) + identifier;
+  }
 }
 
 class AdditionalItem extends Item {
   late final String _identifier;
   late final String _target;
   late final String _translation;
+  late final String _phonetic;
 
   @override
   String get identifier => _identifier;
@@ -72,18 +78,17 @@ class AdditionalItem extends Item {
   @override
   String get translation => _translation;
 
-  AdditionalItem(this._identifier, this._target, this._translation) {
-    _id = haserNikud(target);
-  }
+  @override
+  String get phonetic => _phonetic;
+
+  AdditionalItem(this._identifier, this._target, this._translation, this._phonetic) : super();
 }
 
 class TextItem extends Item {
   late final Mapper _mapper;
   late final List<String> _line;
 
-  TextItem(this._line, this._mapper) {
-    _id = haserNikud(target) + identifier;
-  }
+  TextItem(this._line, this._mapper) : super();
 
   @override
   String get target => _line[_mapper.target];
@@ -161,7 +166,7 @@ void addSecondary(List<Item> items) {
       var he = haserNikud(entry[0]).trim();
       var other = map[he];
       if (other == null) {
-        other = AdditionalItem('', entry[0].trim(), entry[1].trim());
+        other = AdditionalItem('', entry[0].trim(), entry[1].trim(), '');
         map[he] = other;
         items.add(other);
       }

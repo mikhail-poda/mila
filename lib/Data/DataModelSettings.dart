@@ -1,9 +1,9 @@
 class DataModelSettings {
   static const levels = ["Again", "Good", "Easy"];
 
-  static const value1 = 1;
-  static const value2 = 2;
-  static const value3 = 3;
+  static const valueAgain = 1;
+  static const valueGood = 2;
+  static const valueEasy = 3;
 
   static const maxLevel = 5;
   static const minExclude = 5; // how many times a used item will be excluded

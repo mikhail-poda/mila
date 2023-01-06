@@ -1,4 +1,4 @@
-const titleString = 'Hebrew Vocabulary Trainer v0.9.4.11';
+const titleString = 'Hebrew Vocabulary Trainer v0.9.9';
 const serialName = 'current vocabulary';
 const completeName = 'complete vocabulary';
 const String uri =
