@@ -100,19 +100,19 @@ class SourceDialogs {
         });
   }
 
-  static void exported(BuildContext context, int num) {
+  static void show(BuildContext context, String msg) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return Dialog(
               child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Text("Exported $num vocables"),
+            child: Text(msg),
           ));
         });
   }
 
-  static void imported(BuildContext context, Future<int> import) async {
+  static void showAsync(BuildContext context, Future<int> import) async {
     var num = await import;
     showDialog(
         context: context,

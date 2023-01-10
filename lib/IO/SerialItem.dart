@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:hive/hive.dart';
 
+import '../Data/DataModelSettings.dart';
 import '../Library/Library.dart';
 
 part 'SerialItem.g.dart';
@@ -28,5 +31,15 @@ class SerialItem {
 
   SerialItem();
 
-  SerialItem.init(this.identifier, this.target, this.translation, this.level, this.lastUse, this.phonetic);
+  SerialItem.init(
+      this.identifier, this.target, this.translation, this.level, this.lastUse, this.phonetic);
+
+  DateTime get nextUse {
+    var diff = level - DataModelSettings.maxLevel;
+    if (diff < 0) return lastUse;
+
+    var days = pow(2, diff) as int;
+    var next = lastUse!.add(Duration(days: days));
+    return next;
+  }
 }

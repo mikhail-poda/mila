@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:darq/darq.dart';
 import 'package:collection/collection.dart' show IterableZip;
 
@@ -60,6 +62,15 @@ abstract class Item {
 
   Item() {
     _id = haserNikud(target) + identifier;
+  }
+
+  DateTime get nextUse {
+    var diff = level - DataModelSettings.maxLevel;
+    if (diff < 0) return lastUse;
+
+    var days = pow(2, diff) as int;
+    var next = lastUse!.add(Duration(days: days));
+    return next;
   }
 }
 

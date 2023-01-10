@@ -146,4 +146,10 @@ class HiveObsolete implements ISerializer {
     // TODO: implement setSettings
     throw UnimplementedError();
   }
+
+  @override
+  int clear(int days) {
+    // TODO: implement clear
+    throw UnimplementedError();
+  }
 }

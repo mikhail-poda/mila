@@ -18,6 +18,8 @@ abstract class ISerializer {
 
   Future<int> import();
 
+  int clear(int days);
+
   Iterable<Item> loadVocabulary();
 
   Settings getSettings();

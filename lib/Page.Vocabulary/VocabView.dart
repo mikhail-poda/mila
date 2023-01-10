@@ -48,7 +48,7 @@ class VocabView extends ConsumerWidget {
         body: Center(
             child: SingleChildScrollView(
                 child: Text(error.description,
-                    textScaleFactor: 1.5, style: lightFont, textAlign: TextAlign.center))),
+                    textScaleFactor: 1.75, style: lightFont, textAlign: TextAlign.center))),
         bottomNavigationBar: Text(error.message,
             textScaleFactor: 2,
             textAlign: TextAlign.center,

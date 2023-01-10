@@ -52,17 +52,23 @@ class SourcesView extends ConsumerWidget {
           value: 2,
           child: Text('Import vocabulary'),
         ),
-        const PopupMenuItem<int>(value: 3, child: Text('Show settings')),
-        const PopupMenuItem<int>(value: 4, child: Text('About')),
+        const PopupMenuItem<int>(
+          value: 3,
+          child: Text('Clear unused vocabulary'),
+        ),
+        const PopupMenuItem<int>(value: 4, child: Text('Show settings')),
+        const PopupMenuItem<int>(value: 5, child: Text('About')),
       ],
     );
   }
 
   void _menuSelection(int value, BuildContext context) {
-    if (value == 1) SourceDialogs.exported(context, GetIt.I<ISerializer>().export());
-    if (value == 2) SourceDialogs.imported(context, GetIt.I<ISerializer>().import());
-    if (value == 3) SourceDialogs.settingsDialog(context, GetIt.I<ISerializer>());
-    if (value == 4) SourceDialogs.aboutDialog(context);
+    var s=GetIt.I<ISerializer>();
+    if (value == 1) SourceDialogs.show(context, "Exported ${s.export()} vocables");
+    if (value == 2) SourceDialogs.showAsync(context, s.import());
+    if (value == 3) SourceDialogs.show(context, "Cleared ${s.clear(30)} vocables");
+    if (value == 4) SourceDialogs.settingsDialog(context, GetIt.I<ISerializer>());
+    if (value == 5) SourceDialogs.aboutDialog(context);
   }
 
   Center _body(List<String> list, WidgetRef ref) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html';
+import 'dart:math';
 import 'package:darq/darq.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -137,6 +138,22 @@ class HiveSerializer implements ISerializer {
   @override
   setSettings(Settings settings) {
     _settingsBox.put(0, settings);
+  }
+
+  @override
+  int clear(int days) {
+    var list = <SerialItem>[];
+    var last = DateTime.now().subtract(Duration(days: days));
+
+    for (var item in _itemsBox.values) {
+      if (item.nextUse.isBefore(last)) list.add(item);
+    }
+
+    for (var item in list) {
+      _itemsBox.delete(item.id);
+    }
+
+    return list.length;
   }
 }
 
