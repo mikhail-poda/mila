@@ -123,3 +123,36 @@ Multi-user:
 Problems:
 - serialization haser-nikud & words different by vocalization
 - learning of word groups
+
+
+
+Scrap:
+- Mark Niran
+- He Academy
+ 
+Links:
+- Mark Niran
+- Ulpan
+
+Pealim:
+- Find used
+- List as table
+- Fix problems
+- Add root to the vocabulary
+- Display same root verbs
+
+Roots List:
+- Mark Niran
+- Pealim
+- Facebook
+
+Get Audio + Transkript:
+- Nadya
+- L’olamut
+- Piece of He
+- ???
+ 
+Use Audio:
+- Extract audio pieces (sentences?)
+- Store audio, transcript online
+- Add Links
