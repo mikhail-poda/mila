@@ -76,9 +76,8 @@ class VocabView extends ConsumerWidget {
 
     //----------------------  MAIN VIEW ----------------------
     return Scaffold(
-        appBar: AppBar(
-            title: Text('${model.sourceName} 〈${model.length}〉'),
-            actions: <Widget>[_menu(context, model)]),
+        appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
+          _menu(context, model)]),
         body: _body(context, model),
         bottomNavigationBar: _buttons(model));
   }
@@ -88,14 +87,12 @@ class VocabView extends ConsumerWidget {
       onSelected: (v) => _menuSelection(v, context, model),
       child:
           const Padding(padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
-      itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
-        PopupMenuItem<int>(
-            value: 0,
-            enabled: model.isComplete,
-            child: const Text('Move item to the end of the list')),
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem<int>(value: 0, enabled: model.isComplete, child: const Text('Skip item')),
         PopupMenuItem<int>(value: 1, enabled: model.isComplete, child: const Text('Hide item')),
         PopupMenuItem<int>(
             value: 2, enabled: model.hasPrevious, child: const Text('Previous item')),
+        const PopupMenuDivider(),
         const PopupMenuItem<int>(value: 3, child: Text('Reset all items')),
         PopupMenuItem<int>(
             value: 4, enabled: model.isComplete, child: const Text('Reset this item')),

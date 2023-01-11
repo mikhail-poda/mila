@@ -43,7 +43,7 @@ class SourcesView extends ConsumerWidget {
       onSelected: (v) => _menuSelection(v, context),
       child:
       const Padding(padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
-      itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
+      itemBuilder: (BuildContext context) => [
         const PopupMenuItem<int>(
           value: 1,
           child: Text('Export vocabulary'),
@@ -56,6 +56,7 @@ class SourcesView extends ConsumerWidget {
           value: 3,
           child: Text('Clear unused vocabulary'),
         ),
+        const PopupMenuDivider(),
         const PopupMenuItem<int>(value: 4, child: Text('Show settings')),
         const PopupMenuItem<int>(value: 5, child: Text('About')),
       ],
