@@ -4,9 +4,7 @@ import 'Settings.dart';
 abstract class ISource {
   Stream<String> getVocabularies();
 
-  Iterable<Item> loadVocabulary(String fileName);
-
-  Iterable<Item> loadComplete();
+  Iterable<Item> loadVocabulary(String sourceName);
 }
 
 abstract class ISerializer {

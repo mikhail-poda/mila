@@ -16,20 +16,24 @@ class SourcesView extends ConsumerWidget {
   Widget build(context, ref) {
     final asyncModel = ref.watch(vocabulariesListProvider);
 
-    AppConfig.width = MediaQuery.of(context).size.width;
-    AppConfig.height = MediaQuery.of(context).size.height;
+    AppConfig.width = MediaQuery
+        .of(context)
+        .size
+        .width;
+    AppConfig.height = MediaQuery
+        .of(context)
+        .size
+        .height;
     AppConfig.blockWidth = AppConfig.width / 100;
     AppConfig.blockHeight = AppConfig.height / 100;
 
     return Container(
         color: Colors.white,
-        child: asyncModel.map(
-            loading: (_) => const Center(child: CircularProgressIndicator()),
-            error: (_) => Text(
-                  _.error.toString(),
-                  style: const TextStyle(color: Colors.red),
-                ),
-            data: (_) => _buildScaffold(_.value, context, ref)));
+        child: asyncModel.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stackTrace) =>
+                Text(error.toString(), style: const TextStyle(color: Colors.red),),
+            data: (sources) => _buildScaffold(sources, context, ref)));
   }
 
   Scaffold _buildScaffold(List<String> list, BuildContext context, WidgetRef ref) {
@@ -43,7 +47,8 @@ class SourcesView extends ConsumerWidget {
       onSelected: (v) => _menuSelection(v, context),
       child:
       const Padding(padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
-      itemBuilder: (BuildContext context) => [
+      itemBuilder: (BuildContext context) =>
+      [
         const PopupMenuItem<int>(
           value: 1,
           child: Text('Export vocabulary'),
@@ -64,7 +69,7 @@ class SourcesView extends ConsumerWidget {
   }
 
   void _menuSelection(int value, BuildContext context) {
-    var s=GetIt.I<ISerializer>();
+    var s = GetIt.I<ISerializer>();
     if (value == 1) SourceDialogs.show(context, "Exported ${s.export()} vocables");
     if (value == 2) SourceDialogs.showAsync(context, s.import());
     if (value == 3) SourceDialogs.show(context, "Cleared ${s.clear(30)} vocables");
@@ -81,7 +86,9 @@ class SourcesView extends ConsumerWidget {
               return Material(
                   child: ListTile(
                       onTap: () {
-                        ref.read(vocabularyNameProvider.notifier).state = list[index];
+                        ref
+                            .read(vocabularyNameProvider.notifier)
+                            .state = list[index];
                         Navigator.push(
                           context,
                           MaterialPageRoute(

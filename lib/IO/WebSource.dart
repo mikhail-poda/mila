@@ -25,7 +25,7 @@ class WebSource implements ISource {
         .map((e) => e.text)
         .toList();
 
-    yield* _names!.toStream();
+    yield* _names!.where((e) => !e.startsWith('.')).toStream();
   }
 
   static List<String> readRow(Element e) {

@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 
-import '../Constants.dart';
 import '../IO/ISerializer.dart';
 import '../Data/Item.dart';
 import '../Library/Result.dart';
@@ -22,15 +21,9 @@ final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
 });
 
 Future<ModelOrError> _getVocabModel(String sourceName) async {
-  var source = sourceName == serialName
-      ? GetIt.I<ISerializer>().loadVocabulary()
-      : sourceName == completeName
-          ? GetIt.I<ISource>().loadComplete()
-          : GetIt.I<ISource>().loadVocabulary(sourceName);
+  var source = GetIt.I<ISource>().loadVocabulary(sourceName);
 
   var items = source.toList();
-  if (sourceName == completeName) items = makeUnique(items).toList();
-
   final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 

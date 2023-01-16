@@ -245,12 +245,3 @@ String clean(String s) {
 
   return s;
 }
-
-Iterable<Item> makeUnique(List<Item> items) sync* {
-  var set = <String>{};
-  for (var item in items) {
-    if (set.contains(item.id)) continue;
-    set.add(item.id);
-    yield item;
-  }
-}
