@@ -1,3 +1,4 @@
+import '../Data/DataModelSettings.dart';
 import '../Data/Item.dart';
 import 'Settings.dart';
 
@@ -5,6 +6,8 @@ abstract class ISource {
   Stream<String> getVocabularies();
 
   Iterable<Item> loadVocabulary(String sourceName);
+
+  Iterable<Item> loadComplete();
 }
 
 abstract class ISerializer {
@@ -16,9 +19,9 @@ abstract class ISerializer {
 
   Future<int> import();
 
-  int clear(int days);
+  int clearUnused(Iterable<Item> used);
 
-  Iterable<Item> loadVocabulary();
+  Statistics statistics();
 
   Settings getSettings();
 

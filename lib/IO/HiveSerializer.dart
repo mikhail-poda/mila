@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io' as io;
+
 import 'dart:html';
-import 'dart:math';
 import 'package:darq/darq.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -26,18 +28,12 @@ class HiveSerializer implements ISerializer {
     Hive.registerAdapter(SettingsAdapter());
     Hive.registerAdapter(SerialItemAdapter());
 
-    _settingsBox = await Hive.openBox<Settings>('SettingsBox.1');
     _itemsBox = await Hive.openBox<SerialItem>('ItemBox.1');
-
-    //await HiveObsolete.init();
+    _settingsBox = await Hive.openBox<Settings>('SettingsBox.1');
   }
 
   @override
   void sync(List<Item> items) async {
-    //var obs = HiveObsolete();
-    //var lines = obs.asLines();
-    //_importLines(lines);
-
     for (var item in items) {
       var obj = _itemsBox.get(item.id);
       if (obj == null) continue;
@@ -60,18 +56,18 @@ class HiveSerializer implements ISerializer {
   }
 
   @override
-  Iterable<Item> loadVocabulary() sync* {
-    for (var obj in _itemsBox.values) {
-      yield AdditionalItem(obj.identifier, obj.target, obj.translation, obj.phonetic);
-    }
+  Statistics statistics() {
+    var list = _itemsBox.values.toList();
+    return Statistics(list);
   }
 
   List<String> asLines() {
     var buf = <String>['identifier\ttarget\ttranslation\tlevel\tlast_use\tphonetic'];
 
     for (var obj in _itemsBox.values) {
+      var lastUse = _formatter.format(obj.lastUse);
       buf.add(
-          '${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t${obj.lastUse}\t${obj.phonetic}');
+          '${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t${lastUse}\t${obj.phonetic}');
     }
 
     return buf;
@@ -81,14 +77,18 @@ class HiveSerializer implements ISerializer {
   int export() {
     final lines = asLines();
     final text = lines.join('\n');
-    final bytes = utf8.encode(text);
-    final content = base64Encode(bytes);
 
-    AnchorElement(href: "data:application/octet-stream;charset=utf-16le;base64,$content")
-      ..setAttribute("download", "file.txt")
-      ..click();
+    if (kIsWeb) {
+      final bytes = utf8.encode(text);
+      final content = base64Encode(bytes);
 
-    return lines.length;
+      AnchorElement(href: "data:application/octet-stream;charset=utf-16le;base64,$content")
+        ..setAttribute("download", "file.txt")
+        ..click();
+
+      return lines.length;
+    }
+    return 0;
   }
 
   @override
@@ -96,10 +96,16 @@ class HiveSerializer implements ISerializer {
     final result = await FilePicker.platform.pickFiles();
     if (result == null || result.files.isEmpty) return Future<int>.value(0);
 
-    final bytes = result.files.first.bytes;
+    List<String> lines;
 
-    var str = const Utf8Codec().decode(bytes!);
-    var lines = str.split('\n');
+    if (kIsWeb) {
+      final bytes = result.files.first.bytes;
+      var str = const Utf8Codec().decode(bytes!);
+      lines = str.split('\n');
+    } else {
+      lines = await io.File(result.files.first.path!).readAsLines();
+    }
+
     var num = _importLines(lines);
 
     return Future<int>.value(num);
@@ -112,10 +118,12 @@ class HiveSerializer implements ISerializer {
 
     for (var line in lines.skip(1)) {
       var cell = line.split('\t').select((x, i) => x.trim()).toList();
-      if (!hasHebrew(cell[0])) continue;
 
       num++;
+
       var target = cell[mapper.target];
+      if (!hasHebrew(target)) continue;
+
       var translation = cell[mapper.translation];
       var level = int.parse(cell[mapper.level]);
       var lastUse = _formatter.parse(cell[mapper.lastUse]);
@@ -141,16 +149,16 @@ class HiveSerializer implements ISerializer {
   }
 
   @override
-  int clear(int days) {
-    var list = <SerialItem>[];
-    var last = DateTime.now().subtract(Duration(days: days));
+  int clearUnused(Iterable<Item> used) {
+    var list = <String>[];
+    var $set = used.select((item, _) => item.id).distinct().toSet();
 
-    for (var item in _itemsBox.values) {
-      if (item.nextUse.isBefore(last)) list.add(item);
+    for (var id in _itemsBox.keys.ofType<String>()) {
+      if (!$set.contains(id)) list.add(id);
     }
 
-    for (var item in list) {
-      _itemsBox.delete(item.id);
+    for (var id in list) {
+      _itemsBox.delete(id);
     }
 
     return list.length;

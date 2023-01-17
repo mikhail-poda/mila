@@ -62,32 +62,15 @@ class VocabModel extends ChangeNotifier {
     _serializer = serializer;
   }
 
+  Statistics statistics() {
+    return Statistics(_items);
+  }
+
   //---------------------------------[ properties ]---------------------------------
 
   int get length => _model.length;
 
   int? get pendingNo => _model.pendingNo;
-
-  List<Item> get count1 =>
-      _model.where((element) => element.level == DataModelSettings.hiddenLevel).toList();
-
-  List<Item> get count2 => _model
-      .where((element) =>
-          (element.level == DataModelSettings.undoneLevel) ||
-          (element.level == DataModelSettings.tailLevel))
-      .toList();
-
-  List<Item> get count3 => _model
-      .where((element) =>
-          (element.level > DataModelSettings.undoneLevel) &&
-          (element.level < DataModelSettings.maxLevel))
-      .toList();
-
-  List<Item> get count4 =>
-      _model.where((element) => element.level == DataModelSettings.maxLevel).toList();
-
-  List<Item> get count5 =>
-      _model.where((element) => element.level > DataModelSettings.maxLevel).toList();
 
   String get he0 {
     if (!_showHe || _current == null) return "";

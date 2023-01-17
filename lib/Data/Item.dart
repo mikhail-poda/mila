@@ -34,18 +34,27 @@ class Mapper {
   }
 }
 
-abstract class Item {
+abstract class IItem{
+  late int level;
+  String get target;
+  String get translation;
+}
+
+abstract class Item implements IItem {
   final Set<Item> _secondary = <Item>{};
 
   late String _id;
 
+  @override
   int level = DataModelSettings.undoneLevel;
   DateTime lastUse = DateTime.now();
 
   String get id => _id;
 
+  @override
   String get target;
 
+  @override
   String get translation;
 
   String get identifier;
@@ -75,13 +84,11 @@ abstract class Item {
 }
 
 class AdditionalItem extends Item {
-  late final String _identifier;
   late final String _target;
   late final String _translation;
-  late final String _phonetic;
 
   @override
-  String get identifier => _identifier;
+  String get identifier => "";
 
   @override
   String get target => _target;
@@ -89,10 +96,7 @@ class AdditionalItem extends Item {
   @override
   String get translation => _translation;
 
-  @override
-  String get phonetic => _phonetic;
-
-  AdditionalItem(this._identifier, this._target, this._translation, this._phonetic) : super();
+  AdditionalItem(this._target, this._translation) : super();
 }
 
 class TextItem extends Item {
@@ -177,7 +181,7 @@ void addSecondary(List<Item> items) {
       var he = haserNikud(entry[0]).trim();
       var other = map[he];
       if (other == null) {
-        other = AdditionalItem('', entry[0].trim(), entry[1].trim(), '');
+        other = AdditionalItem(entry[0].trim(), entry[1].trim());
         map[he] = other;
         items.add(other);
       }
@@ -244,4 +248,34 @@ String clean(String s) {
   }
 
   return s;
+}
+
+class Statistics {
+  late List<IItem> total;
+  late List<IItem> repeat;
+  late List<IItem> done;
+  late List<IItem> doneAll;
+  late List<IItem> undone;
+  late List<IItem> hidden;
+
+  Statistics(List<IItem> list) {
+    total = list;
+
+    repeat = list
+        .where(
+            (x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.maxLevel)
+        .toList();
+
+    done = list.where((x) => x.level == DataModelSettings.maxLevel).toList();
+
+    doneAll = list.where((x) => x.level > DataModelSettings.maxLevel).toList();
+
+    hidden = list.where((element) => element.level == DataModelSettings.hiddenLevel).toList();
+
+    undone = list
+        .where((element) =>
+            element.level == DataModelSettings.undoneLevel ||
+            element.level == DataModelSettings.tailLevel)
+        .toList();
+  }
 }

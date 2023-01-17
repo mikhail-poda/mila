@@ -7,3 +7,5 @@ final vocabulariesListProvider = FutureProvider<List<String>>(
     (ref) async => await GetIt.I<ISource>().getVocabularies().toList());
 
 final vocabularyNameProvider = StateProvider<String>((ref) => "");
+
+final vocabularyStateProvider = StateProvider<int>((ref) => 0);

@@ -3,21 +3,25 @@ import 'dart:math';
 import 'package:hive/hive.dart';
 
 import '../Data/DataModelSettings.dart';
+import '../Data/Item.dart';
 import '../Library/Library.dart';
 
 part 'SerialItem.g.dart';
 
 @HiveType(typeId: 1)
-class SerialItem {
+class SerialItem implements IItem {
   @HiveField(0)
   late String identifier;
 
+  @override
   @HiveField(1)
   late String target;
 
+  @override
   @HiveField(2)
   late String translation;
 
+  @override
   @HiveField(3)
   late int level;
 

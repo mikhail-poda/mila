@@ -10,6 +10,7 @@ import '../Data/Item.dart';
 import '../Library/Library.dart';
 import '../Library/Result.dart';
 import '../Data/SourceError.dart';
+import '../Library/Widgets.dart';
 import 'VocabDialogs.dart';
 import 'VocabModel.dart';
 import '../main.dart';
@@ -74,10 +75,12 @@ class VocabView extends ConsumerWidget {
           )));
     }
 
-    //----------------------  MAIN VIEW ----------------------
+    //-------------------------  MAIN VIEW -------------------------
+
     return Scaffold(
-        appBar: AppBar(title: Text('${model.sourceName} 〈${model.length}〉'), actions: <Widget>[
-          _menu(context, model)]),
+        appBar: AppBar(
+            title: Text('${model.sourceName} 〈${model.length}〉'),
+            actions: <Widget>[_menu(context, model)]),
         body: _body(context, model),
         bottomNavigationBar: _buttons(model));
   }
@@ -102,6 +105,7 @@ class VocabView extends ConsumerWidget {
   }
 
   Widget _body(BuildContext context, VocabModel model) {
+    var stat = model.statistics();
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -113,15 +117,17 @@ class VocabView extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    statWidget(context, model.count1, Icons.do_disturb_on_outlined, Colors.black38),
+                    Widgets.statWidget(
+                        context, stat.hidden, Icons.do_disturb_on_outlined, Colors.black38),
                     const Expanded(child: Text("")),
-                    statWidget(context, model.count2, Icons.hourglass_empty_sharp, Colors.black45),
+                    Widgets.statWidget(
+                        context, stat.undone, Icons.hourglass_empty_sharp, Colors.black45),
                     const Expanded(child: Text("")),
-                    statWidget(context, model.count3, Icons.repeat, Colors.orange),
+                    Widgets.statWidget(context, stat.repeat, Icons.repeat, Colors.orange),
                     const Expanded(child: Text("")),
-                    statWidget(context, model.count4, Icons.done, Colors.green),
+                    Widgets.statWidget(context, stat.done, Icons.done, Colors.green),
                     const Expanded(child: Text("")),
-                    statWidget(context, model.count5, Icons.done_all, Colors.lightGreen),
+                    Widgets.statWidget(context, stat.doneAll, Icons.done_all, Colors.lightGreen),
                   ],
                 ),
                 Text(
@@ -171,16 +177,6 @@ class VocabView extends ConsumerWidget {
         child: Text(name,
             textScaleFactor: hasHebrew(name) ? 2.5 : 3.0, // bigger fonts for latin
             style: const TextStyle(color: Colors.black12, fontWeight: FontWeight.bold)));
-  }
-
-  Widget statWidget(BuildContext context, List<Item> items, IconData icon, Color color) {
-    return TextButton(
-      onPressed: () => VocabDialogs.statDialog(context, items),
-      child: Row(children: <Widget>[
-        Icon(icon, size: 20, color: Colors.black54),
-        Text(' ${items.length}', textScaleFactor: 1.5, style: TextStyle(color: color))
-      ]),
-    );
   }
 
   List<Widget> _content(VocabModel model) {
