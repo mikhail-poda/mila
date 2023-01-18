@@ -211,7 +211,7 @@ void addSynonyms(List<Item> items) {
 
   var syn = <Item, Set<Item>>{};
 
-  // mak a list of synonyms for each item
+  // make a list of synonyms for each item
   for (final set in map.values) {
     if (set.length == 1) continue;
     for (final item in set) {

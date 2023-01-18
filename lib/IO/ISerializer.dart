@@ -6,8 +6,6 @@ abstract class ISource {
   Stream<String> getVocabularies();
 
   Iterable<Item> loadVocabulary(String sourceName);
-
-  Iterable<Item> loadComplete();
 }
 
 abstract class ISerializer {

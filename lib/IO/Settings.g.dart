@@ -17,8 +17,8 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Settings()
-      ..iterationMode = fields[0] as IterationMode
-      ..displayMode = fields[1] as DisplayMode
+      ..iterationMode = fields[0] as int
+      ..displayMode = fields[1] as int
       ..showNikud = fields[2] as bool;
   }
 

@@ -8,7 +8,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   AbstractDataModel(this._items);
 
-  int? get pendingNo => null;
+  String get message => '';
 
   Item operator [](int index) => _items[index];
 

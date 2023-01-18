@@ -28,10 +28,10 @@ class SourceDialogs {
                         totalSwitches: 2,
                         labels: const ['Sequential', 'Random'],
                         onToggle: (index) {
-                          settings.iterationMode = IterationMode.values[index!];
+                          settings.iterationMode = index!;
                           serializer.setSettings(settings);
                         },
-                        initialLabelIndex: settings.iterationMode.index,
+                        initialLabelIndex: settings.iterationMode,
                       ),
                       const Text(""),
                       const Text("Display Order:", textScaleFactor: 1.75, style: lightFont),
@@ -39,10 +39,10 @@ class SourceDialogs {
                         totalSwitches: 4,
                         labels: const ['He', 'Eng', 'Random', 'Both'],
                         onToggle: (index) {
-                          settings.displayMode = DisplayMode.values[index!];
+                          settings.displayMode = index!;
                           serializer.setSettings(settings);
                         },
-                        initialLabelIndex: settings.displayMode.index,
+                        initialLabelIndex: settings.displayMode,
                       ),
                       const Text(""),
                       const Text("Show Nikud:", textScaleFactor: 1.75, style: lightFont),
@@ -100,19 +100,19 @@ class SourceDialogs {
         });
   }
 
-  static void show(BuildContext context, String msg) {
+  static void showExported(BuildContext context, int num) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return Dialog(
               child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Text(msg),
+            child: Text("Exported ${num} vocables"),
           ));
         });
   }
 
-  static void showAsync(BuildContext context, Future<int> import) async {
+  static void showImported(BuildContext context, Future<int> import) async {
     var num = await import;
     showDialog(
         context: context,

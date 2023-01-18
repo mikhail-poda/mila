@@ -53,7 +53,7 @@ class VocabModel extends ChangeNotifier {
 
     serializer.sync(_items);
 
-    if (_settings.iterationMode == IterationMode.sequential) {
+    if (_settings.iterationMode == IterationMode.sequential.index) {
       _model = SequentialDataModel(_items);
     } else {
       _model = RandomDataModel(_items);
@@ -62,6 +62,8 @@ class VocabModel extends ChangeNotifier {
     _serializer = serializer;
   }
 
+  String get message => _model.message;
+
   Statistics statistics() {
     return Statistics(_items);
   }
@@ -69,8 +71,6 @@ class VocabModel extends ChangeNotifier {
   //---------------------------------[ properties ]---------------------------------
 
   int get length => _model.length;
-
-  int? get pendingNo => _model.pendingNo;
 
   String get he0 {
     if (!_showHe || _current == null) return "";
@@ -155,10 +155,11 @@ class VocabModel extends ChangeNotifier {
   }
 
   void _prepareTransaction(bool isComplete) {
-    _isComplete = isComplete || _settings.displayMode == DisplayMode.complete;
+    _isComplete = isComplete || _settings.displayMode == DisplayMode.complete.index;
 
     if (!_isComplete) {
-      switch (_settings.displayMode) {
+      var displayMode = DisplayMode.values[_settings.displayMode];
+      switch (displayMode) {
         case DisplayMode.he:
           _guessMode = GuessMode.he;
           break;

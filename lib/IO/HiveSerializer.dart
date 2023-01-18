@@ -139,7 +139,7 @@ class HiveSerializer implements ISerializer {
   @override
   Settings getSettings() {
     return _settingsBox.isEmpty
-        ? Settings.init(IterationMode.random, DisplayMode.eng, true)
+        ? Settings.init(IterationMode.random.index, DisplayMode.eng.index, true)
         : _settingsBox.get(0)!;
   }
 

@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import '../Constants.dart';
 import '../IO/ISerializer.dart';
 import '../Library/Widgets.dart';
+import '../Page.Vocabulary/VocabProviders.dart';
 import '../Page.Vocabulary/VocabView.dart';
 import '../main.dart';
 import 'SourceDialogs.dart';
@@ -53,13 +54,9 @@ class SourcesView extends ConsumerWidget {
           value: 2,
           child: Text('Import vocabulary'),
         ),
-        const PopupMenuItem<int>(
-          value: 3,
-          child: Text('Clear unused vocabulary'),
-        ),
         const PopupMenuDivider(),
-        const PopupMenuItem<int>(value: 4, child: Text('Show settings')),
-        const PopupMenuItem<int>(value: 5, child: Text('About')),
+        const PopupMenuItem<int>(value: 3, child: Text('Show settings')),
+        const PopupMenuItem<int>(value: 4, child: Text('About')),
       ],
     );
   }
@@ -67,15 +64,13 @@ class SourcesView extends ConsumerWidget {
   void _menuSelection(int value, BuildContext context, WidgetRef ref) {
     var s = GetIt.I<ISerializer>();
 
-    if (value == 1) SourceDialogs.show(context, "Exported ${s.export()} vocables");
-    if (value == 2) SourceDialogs.showAsync(context, s.import());
+    if (value == 1) SourceDialogs.showExported(context, s.export());
+    if (value == 2) SourceDialogs.showImported(context, s.import());
     if (value == 3) {
-      var source = GetIt.I<ISource>();
-      SourceDialogs.show(context, "Cleared ${s.clearUnused(source.loadComplete())} vocables");
-      ref.read(vocabularyStateProvider.notifier).update((state) => state + 1);
+      SourceDialogs.settingsDialog(context, s);
+      ref.invalidate(vocabModelProvider);
     }
-    if (value == 4) SourceDialogs.settingsDialog(context, s);
-    if (value == 5) SourceDialogs.aboutDialog(context);
+    if (value == 4) SourceDialogs.aboutDialog(context);
   }
 
   Widget _body(BuildContext context, WidgetRef ref, List<String> list) {
@@ -95,9 +90,6 @@ class SourcesView extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Widgets.statWidget(context, stat.repeat + stat.done + stat.doneAll,
-                        Icons.folder_open, Colors.black45),
-                    const Expanded(child: Text("")),
                     Widgets.statWidget(context, stat.repeat, Icons.repeat, Colors.orange),
                     const Expanded(child: Text("")),
                     Widgets.statWidget(context, stat.done, Icons.done, Colors.green),

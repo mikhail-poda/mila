@@ -10,10 +10,10 @@ enum DisplayMode { he, eng, random, complete }
 class Settings{
 
   @HiveField(0)
-  late IterationMode iterationMode;
+  late int iterationMode;
 
   @HiveField(1)
-  late DisplayMode displayMode;
+  late int displayMode;
 
   @HiveField(2)
   late bool showNikud;

@@ -37,7 +37,13 @@ class RandomDataModel extends AbstractDataModel {
   }
 
   @override
-  int? get pendingNo =>
+  String get message {
+    var num = _pendingNo;
+    if (num == null || num == 0) return '';
+    return num.toString();
+  }
+
+  int? get _pendingNo =>
       where((item) => item.level >= DataModelSettings.maxLevel && !_excluded.contains(item)).length;
 
   @override

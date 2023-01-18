@@ -27,7 +27,7 @@ class VocabView extends ConsumerWidget {
 
   @override
   Widget build(context, ref) {
-    final asyncModel = ref.watch(fileResultProvider);
+    final asyncModel = ref.watch(vocabModelProvider);
     return Container(
         color: Colors.white,
         child: asyncModel.map(
@@ -130,10 +130,7 @@ class VocabView extends ConsumerWidget {
                     Widgets.statWidget(context, stat.doneAll, Icons.done_all, Colors.lightGreen),
                   ],
                 ),
-                Text(
-                  (model.pendingNo == null || model.pendingNo == 0)
-                      ? ''
-                      : model.pendingNo.toString(),
+                Text(model.message,
                   textScaleFactor: 4,
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.black12),

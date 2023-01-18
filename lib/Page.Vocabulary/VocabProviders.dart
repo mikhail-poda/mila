@@ -10,13 +10,13 @@ import 'VocabModel.dart';
 
 typedef ModelOrError = Result<VocabModel, SourceError>;
 
-final fileResultProvider = FutureProvider<ModelOrError>((ref) async {
+final vocabModelProvider = FutureProvider<ModelOrError>((ref) async {
   final sourceName = ref.watch(vocabularyNameProvider);
   return await _getVocabModel(sourceName);
 });
 
 final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
-  var model = ref.watch(fileResultProvider).value;
+  var model = ref.watch(vocabModelProvider).value;
   return model!.value!;
 });
 
