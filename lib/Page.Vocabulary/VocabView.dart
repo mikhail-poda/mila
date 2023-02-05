@@ -114,23 +114,9 @@ class VocabView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Widgets.statWidget(
-                        context, stat.hidden, Icons.do_disturb_on_outlined, Colors.black38),
-                    const Expanded(child: Text("")),
-                    Widgets.statWidget(
-                        context, stat.undone, Icons.hourglass_empty_sharp, Colors.black45),
-                    const Expanded(child: Text("")),
-                    Widgets.statWidget(context, stat.repeat, Icons.repeat, Colors.orange),
-                    const Expanded(child: Text("")),
-                    Widgets.statWidget(context, stat.done, Icons.done, Colors.green),
-                    const Expanded(child: Text("")),
-                    Widgets.statWidget(context, stat.doneAll, Icons.done_all, Colors.lightGreen),
-                  ],
-                ),
-                Text(model.message,
+                statisticsRow(context, stat),
+                Text(
+                  model.message,
                   textScaleFactor: 4,
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.black12),
@@ -143,29 +129,57 @@ class VocabView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: _content(model),
             )),
-            model.isComplete
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(child: Text("")),
-                      textLink(
-                          'פ', 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
-                      const Expanded(child: Text("")),
-                      textLink('m', 'https://www.morfix.co.il/${model.currentItem!.target}'),
-                      const Expanded(child: Text("")),
-                      textLink('מ', 'https://milog.co.il/${model.currentItem!.target}'),
-                      const Expanded(child: Text("")),
-                      textLink('g',
-                          'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
-                      const Expanded(child: Text("")),
-                      textLink('r',
-                          'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.target}'),
-                      const Expanded(child: Text(""))
-                    ],
-                  )
-                : const Text("")
+            model.isComplete ? linksRow(model) : const Text("")
           ],
         ));
+  }
+
+  Widget statisticsRow(BuildContext context, Statistics stat) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Widgets.statWidget(context, stat.hidden, Icons.do_disturb_on_outlined, Colors.black38),
+        Widgets.statWidget(context, stat.undone, Icons.hourglass_empty_sharp, Colors.black45),
+        Widgets.statWidget(context, stat.repeat, Icons.repeat, Colors.orange),
+        Widgets.statWidget(context, stat.done, Icons.done, Colors.green),
+        Widgets.statWidget(context, stat.doneAll, Icons.done_all, Colors.lightGreen),
+      ],
+    );
+  }
+
+  Widget linksRow(VocabModel model) {
+    var links = model.links;
+    var widgets = <TextButton>[];
+
+    if (links.length == 1) {
+      widgets.add(textLink("link", links[0]));
+    } else {
+      for (var i = 0; i < links.length; i++) {
+        widgets.add(textLink("link ${i + 1}", links[i]));
+      }
+    }
+
+    return Column(children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: widgets,
+      ),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          textLink('פ', 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
+          textLink('m', 'https://www.morfix.co.il/${model.currentItem!.target}'),
+          textLink('מ', 'https://milog.co.il/${model.currentItem!.target}'),
+          textLink(
+              'g', 'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
+          textLink('r',
+              'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.target}')
+        ],
+      )
+    ]);
   }
 
   TextButton textLink(String name, String link) {

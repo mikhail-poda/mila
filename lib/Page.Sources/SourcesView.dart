@@ -89,11 +89,10 @@ class SourcesView extends ConsumerWidget {
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Widgets.statWidget(context, stat.repeat, Icons.repeat, Colors.orange),
-                    const Expanded(child: Text("")),
                     Widgets.statWidget(context, stat.done, Icons.done, Colors.green),
-                    const Expanded(child: Text("")),
                     Widgets.statWidget(context, stat.doneAll, Icons.done_all, Colors.lightGreen),
                   ],
                 ),

@@ -7,6 +7,7 @@ import '../Library/Library.dart';
 import 'DataModelSettings.dart';
 
 class Mapper {
+  late int links = -1;
   late int target = -1;
   late int identifier = -1;
   late int phonetic = -1;
@@ -17,6 +18,7 @@ class Mapper {
   late int longTranslation = -1;
 
   Mapper(List<String> line) {
+    links = line.indexOf('links');
     target = line.indexOf('target');
     identifier = line.indexOf('identifier');
     phonetic = line.indexOf('phonetic');
@@ -29,14 +31,17 @@ class Mapper {
     if (phonetic == -1) phonetic = line.indexWhere((str) => str.startsWith('pho_'));
     if (translation == -1) translation = line.indexWhere((str) => str.startsWith('tra_'));
     if (addTranslation == -1) addTranslation = line.indexWhere((str) => str.startsWith('add_tra_'));
-    if (longTranslation == -1)
+    if (longTranslation == -1) {
       longTranslation = line.indexWhere((str) => str.startsWith('long_tra_'));
+    }
   }
 }
 
-abstract class IItem{
+abstract class IItem {
   late int level;
+
   String get target;
+
   String get translation;
 }
 
@@ -60,6 +65,8 @@ abstract class Item implements IItem {
   String get identifier;
 
   String get phonetic => '';
+
+  String get links => '';
 
   String get addTarget => _secondary.select((item, _) => item.target).join("\n");
 
@@ -112,6 +119,9 @@ class TextItem extends Item {
   String get translation => _line[_mapper.translation];
 
   @override
+  String get links => (_mapper.links < 0) ? '' : _line[_mapper.links];
+
+  @override
   String get phonetic => (_mapper.phonetic < 0) ? '' : _line[_mapper.phonetic];
 
   @override
@@ -155,7 +165,8 @@ Iterable<Item> fromLines(List<List<String>> lines) sync* {
 }
 
 void addSecondary(List<Item> items) {
-  var map = items.toMap((e) => MapEntry(e.id, e), modifiable: true);
+  var map1 = items.toMap((e) => MapEntry(e.id, e), modifiable: true);
+  var map2 = items.toMap((e) => MapEntry(e.target, e), modifiable: true);
 
   for (var item in items.toList()) {
     var addTarget = item.addTarget.trim();
@@ -178,11 +189,15 @@ void addSecondary(List<Item> items) {
     var secondary = IterableZip([targetList, translationList]);
 
     for (var entry in secondary) {
-      var he = haserNikud(entry[0]).trim();
-      var other = map[he];
+      var target = entry[0].trim();
+      var transl = entry[1].trim();
+
+      var he = haserNikud(target);
+      var other = map1[he] ?? map2[target];
+
       if (other == null) {
-        other = AdditionalItem(entry[0].trim(), entry[1].trim());
-        map[he] = other;
+        other = AdditionalItem(target, transl);
+        map1[he] = other;
         items.add(other);
       }
 

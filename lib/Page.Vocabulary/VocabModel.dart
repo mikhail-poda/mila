@@ -116,6 +116,15 @@ class VocabModel extends ChangeNotifier {
     return _current!.phonetic;
   }
 
+  List<String> get links {
+    if (!_isComplete || _current == null) return <String>[];
+    var links = _current!.links;
+    if (links.isEmpty) return <String>[];
+    links = links.replaceAll('\n', ' ').replaceAll('\r', ' ');
+    var list = links.split(' ');
+    return list;
+  }
+
   //---------------------------------[ commands ]---------------------------------
 
   /// On button press 'Show'
