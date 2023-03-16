@@ -153,10 +153,10 @@ class VocabView extends ConsumerWidget {
     var widgets = <TextButton>[];
 
     if (links.length == 1) {
-      widgets.add(textLink("link", links[0]));
+      widgets.add(textLink("link", 2.25, links[0], fontWeight: FontWeight.normal ));
     } else {
       for (var i = 0; i < links.length; i++) {
-        widgets.add(textLink("link ${i + 1}", links[i]));
+        widgets.add(textLink("link ${i + 1}", 2.25, links[i], fontWeight: FontWeight.normal));
       }
     }
 
@@ -170,24 +170,27 @@ class VocabView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          textLink('פ', 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
-          textLink('m', 'https://www.morfix.co.il/${model.currentItem!.target}'),
-          textLink('מ', 'https://milog.co.il/${model.currentItem!.target}'),
-          textLink(
-              'g', 'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
-          textLink('r',
+          textLink('פ', 2.5, 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
+          textLink('m', 3.0, 'https://www.morfix.co.il/${model.currentItem!.target}'),
+          textLink('מ', 2.5, 'https://milog.co.il/${model.currentItem!.target}'),
+          textLink('g', 3.0,
+              'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
+          textLink('r', 3.0,
               'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.target}')
         ],
       )
     ]);
   }
 
-  TextButton textLink(String name, String link) {
+  TextButton textLink(String name, double factor, String link,
+      {Color color = Colors.black12, FontWeight fontWeight = FontWeight.bold}) {
     return TextButton(
         onPressed: () => launchUrlString(link),
         child: Text(name,
-            textScaleFactor: hasHebrew(name) ? 2.5 : 3.0, // bigger fonts for latin
-            style: const TextStyle(color: Colors.black12, fontWeight: FontWeight.bold)));
+            textDirection: TextDirection.rtl,
+            overflow: TextOverflow.clip,
+            textScaleFactor: factor, // bigger fonts for latin
+            style: TextStyle(color: color, fontWeight: fontWeight)));
   }
 
   List<Widget> _content(VocabModel model) {
@@ -244,12 +247,8 @@ class VocabView extends ConsumerWidget {
               ],
       ),
       const Text(""),
-      Text(
-        model.he2,
-        textScaleFactor: 1.75,
-        textDirection: TextDirection.rtl,
-        overflow: TextOverflow.clip,
-      ),
+      textLink(model.he2, 1.75, 'https://translate.google.com/?sl=iw&tl=en&text=${model.he2}',
+          color: Colors.black, fontWeight: FontWeight.normal),
       Text(
         model.eng2,
         textScaleFactor: 1.75,

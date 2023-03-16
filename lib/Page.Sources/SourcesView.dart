@@ -55,7 +55,7 @@ class SourcesView extends ConsumerWidget {
           child: Text('Import vocabulary'),
         ),
         const PopupMenuDivider(),
-        const PopupMenuItem<int>(value: 3, child: Text('Show settings')),
+        const PopupMenuItem<int>(value: 3, child: Text('Settings')),
         const PopupMenuItem<int>(value: 4, child: Text('About')),
       ],
     );
