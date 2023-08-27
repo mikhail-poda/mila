@@ -116,12 +116,10 @@ class SourceDialogs {
     var num = await import;
     showDialog(
         context: context,
-        builder: (BuildContext context) {
-          return Dialog(
+        builder: (BuildContext context) => Dialog(
               child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Text("Imported $num vocables"),
-          ));
-        });
+          )));
   }
 }

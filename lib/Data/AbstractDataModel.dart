@@ -20,7 +20,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   Item? nextItem(Item? current);
 
-  void setLevel(Item item, int value);
+  void setLevel(Item item, int level);
 
   Iterable<Item> resetItems(bool Function(Item) func) sync* {
     for (var item in _items) {
@@ -31,39 +31,25 @@ abstract class AbstractDataModel with IterableMixin<Item> {
     }
   }
 
-  int getLevel(int level, int value) {
-    if (value == DataModelSettings.undoneLevel ||
-        value == DataModelSettings.hiddenLevel ||
-        value == DataModelSettings.tailLevel) {
-      return value;
+  int getLevel(int itemLevel, int jump) {
+    if (jump <= DataModelSettings.undoneLevel) {
+      return jump;
     }
 
-    //----------------------- map values 1-3 to 1-5
+    // learning mode
+    if (itemLevel < DataModelSettings.maxLevel) {
+      if (jump == Level.again.level) return Level.again.level;
+      if (jump == Level.good.level) return Level.good.level;
 
-    // lowest knowledge, if prev. known then second-lowest
-    // map 1 to [1,2]
-    if (value == DataModelSettings.valueAgain) {
-      return level < 3 ? 1 : 2;
+      // repeat in 16 days 2^(9-5) if the vocable is well known
+      if (itemLevel <= DataModelSettings.undoneLevel) return DataModelSettings.maxLevel + 4;
+      return (itemLevel < Level.easy.level) ? Level.easy.level : itemLevel + 1;
+    } else
+    // repetition mode
+    {
+      if (jump == Level.again.level) return itemLevel ~/ 2;
+      if (jump == Level.good.level) return itemLevel - 1;
+      return itemLevel + 1;
     }
-
-    // certain knowledge, if prev. low then stay lower
-    // map 2 to [3,4]
-    if (value == DataModelSettings.valueGood) {
-      return level < 3 ? 3 : 4;
-    }
-
-    //---------------- value == DataModelSettings.valueEasy which is the highest
-
-    // repeat in 16 days 2^(9-5) if the vocable is well known
-    if (level == DataModelSettings.undoneLevel) return 9;
-
-    // repeat again
-    if (level < 3) return 4;
-
-    // high knowledge
-    if (level < 5) return 5;
-
-    // count up
-    return level + 1;
   }
 }

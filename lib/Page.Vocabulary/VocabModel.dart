@@ -133,9 +133,9 @@ class VocabModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void nextItem(int value) {
+  void nextItem(int level) {
     if (_current != null) {
-      _model.setLevel(_current!, value);
+      _model.setLevel(_current!, level);
       _serializer.push(_current!);
 
       if (_current!.level != DataModelSettings.undoneLevel) {
@@ -177,6 +177,8 @@ class VocabModel extends ChangeNotifier {
           break;
         case DisplayMode.random:
           _guessMode = GuessMode.values[_random.nextInt(2)];
+          break;
+        case DisplayMode.complete:
           break;
       }
 

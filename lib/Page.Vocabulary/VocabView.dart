@@ -153,7 +153,7 @@ class VocabView extends ConsumerWidget {
     var widgets = <TextButton>[];
 
     if (links.length == 1) {
-      widgets.add(textLink("link", 2.25, links[0], fontWeight: FontWeight.normal ));
+      widgets.add(textLink("link", 2.25, links[0], fontWeight: FontWeight.normal));
     } else {
       for (var i = 0; i < links.length; i++) {
         widgets.add(textLink("link ${i + 1}", 2.25, links[i], fontWeight: FontWeight.normal));
@@ -277,20 +277,20 @@ class VocabView extends ConsumerWidget {
               )
             ]
           : <Widget>[
-              customButton(model, DataModelSettings.valueAgain, Colors.orange),
-              customButton(model, DataModelSettings.valueGood, Colors.lightBlueAccent),
-              customButton(model, DataModelSettings.valueEasy, Colors.green),
+              customButton(model, Level.again),
+              customButton(model, Level.good),
+              customButton(model, Level.easy),
             ],
     );
   }
 
-  FloatingActionButton customButton(VocabModel model, int ind, Color color) {
+  FloatingActionButton customButton(VocabModel model, Level level) {
     return FloatingActionButton.extended(
-      backgroundColor: color,
-      heroTag: ind + 2,
-      onPressed: () => model.nextItem(ind),
+      backgroundColor: level.color,
+      heroTag: level.index + 3,
+      onPressed: () => model.nextItem(level.level),
       label: Text(
-        DataModelSettings.levels[ind - 1],
+        level.text,
         textScaleFactor: 1.75,
         style: lightFont,
       ),

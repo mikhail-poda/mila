@@ -98,8 +98,8 @@ class RandomDataModel extends AbstractDataModel {
   }
 
   @override
-  void setLevel(Item item, int value) {
-    item.level = getLevel(item.level, value);
+  void setLevel(Item item, int level) {
+    item.level = getLevel(item.level, level);
     item.lastUse = DateTime.now();
 
     // do no use these items any more in this session
