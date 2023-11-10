@@ -81,11 +81,8 @@ abstract class Item implements IItem {
   }
 
   DateTime get nextUse {
-    var diff = level - DataModelSettings.maxLevel;
-    if (diff < 0) return lastUse;
-
-    var days = pow(2, diff) as int;
-    var next = lastUse!.add(Duration(days: days));
+    var offset = DataModelSettings.fibonacci[level];
+    var next = lastUse!.add(Duration(minutes: offset));
     return next;
   }
 }
@@ -276,21 +273,23 @@ class Statistics {
   Statistics(List<IItem> list) {
     total = list;
 
+    // orange
     repeat = list
-        .where(
-            (x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.maxLevel)
+        .where((x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hourIndex)
         .toList();
 
-    done = list.where((x) => x.level == DataModelSettings.maxLevel).toList();
+    // light green
+    done = list.where((x) => x.level >= DataModelSettings.hourIndex && x.level <= DataModelSettings.dayIndex).toList();
 
-    doneAll = list.where((x) => x.level > DataModelSettings.maxLevel).toList();
+    // dark greem
+    doneAll = list.where((x) => x.level > DataModelSettings.dayIndex).toList();
 
-    hidden = list.where((element) => element.level == DataModelSettings.hiddenLevel).toList();
+    hidden = list.where((element) => element.level == DataModelSettings.hideLevel).toList();
 
     undone = list
         .where((element) =>
             element.level == DataModelSettings.undoneLevel ||
-            element.level == DataModelSettings.tailLevel)
+            element.level == DataModelSettings.skipLevel)
         .toList();
   }
 }

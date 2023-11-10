@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:mila/Constants.dart';
 import 'package:mila/IO/Settings.dart';
 
 import '../Data/DataModelSettings.dart';
@@ -17,7 +18,7 @@ import 'ISerializer.dart';
 import 'SerialItem.dart';
 
 class HiveSerializer implements ISerializer {
-  final _formatter = DateFormat('yyyy.MM.dd');
+  final _formatter = DateFormat('yyyy.MM.dd hh:mm:ss');
 
   static late Box<SerialItem> _itemsBox;
   static late Box<Settings> _settingsBox;
@@ -30,6 +31,8 @@ class HiveSerializer implements ISerializer {
 
     _itemsBox = await Hive.openBox<SerialItem>('ItemBox.1');
     _settingsBox = await Hive.openBox<Settings>('SettingsBox.1');
+
+
   }
 
   @override
@@ -49,8 +52,7 @@ class HiveSerializer implements ISerializer {
       _itemsBox.delete(item.id);
       return;
     } else {
-      var obj = SerialItem.init(
-          item.identifier, item.target, item.translation, item.level, item.lastUse, item.phonetic);
+      var obj = SerialItem.init( item.identifier, item.target, item.translation, item.level, item.lastUse, item.phonetic);
       _itemsBox.put(item.id, obj);
     }
   }
@@ -66,8 +68,7 @@ class HiveSerializer implements ISerializer {
 
     for (var obj in _itemsBox.values) {
       var lastUse = _formatter.format(obj.lastUse);
-      buf.add(
-          '${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t${lastUse}\t${obj.phonetic}');
+      buf.add('${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t${lastUse}\t${obj.phonetic}');
     }
 
     return buf;

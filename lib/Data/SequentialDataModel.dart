@@ -17,10 +17,10 @@ class SequentialDataModel extends AbstractDataModel {
   }
 
   @override
-  void setLevel(Item item, int level) {
-    if (item.level <= DataModelSettings.undoneLevel && level == Level.again.level) return;
+  void setSkill(Item item, Skill skill) {
+    if (item.level <= DataModelSettings.undoneLevel && skill == Skill.again) return;
 
-    item.level = getLevel(item.level, level);
+    item.level = getLevel(item.level, skill);
     item.lastUse = DateTime.now();
   }
 }

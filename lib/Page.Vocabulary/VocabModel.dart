@@ -133,7 +133,22 @@ class VocabModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void nextItem(int level) {
+  void nextItemForSkill(Skill skill) {
+    if (_current != null) {
+      _model.setSkill(_current!, skill);
+      _serializer.push(_current!);
+
+      if (_current!.level != DataModelSettings.undoneLevel) {
+        _stack.add(_current!);
+      }
+    }
+
+    _current = _model.nextItem(_current);
+    _prepareTransaction(false);
+    notifyListeners();
+  }
+
+  void nextItemForLevel(int level) {
     if (_current != null) {
       _model.setLevel(_current!, level);
       _serializer.push(_current!);

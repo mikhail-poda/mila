@@ -7,34 +7,10 @@ import 'DataModelSettings.dart';
 import 'Item.dart';
 
 class RandomDataModel extends AbstractDataModel {
-  final _last = Queue<Item>();
+  final _waitQueue = Queue<Item>();
   final _random = Random();
-  final _excluded = HashSet<Item>();
 
-  DateTime? _lastReset;
-
-  RandomDataModel(List<Item> items) : super(items) {
-    _updateExcludedList();
-  }
-
-  void _updateExcludedList() {
-    _lastReset = DateTime.now();
-    _excluded.clear();
-
-    for (var item in this) {
-      if (item.level == DataModelSettings.hiddenLevel) {
-        _excluded.add(item);
-      } else {
-        var diff = item.level - DataModelSettings.maxLevel;
-        if (diff < 0) continue;
-
-        var days = pow(2, diff) as int;
-        var next = item.lastUse!.add(Duration(days: days));
-
-        if (next.isAfter(_lastReset!)) _excluded.add(item);
-      }
-    }
-  }
+  RandomDataModel(List<Item> items) : super(items);
 
   @override
   String get message {
@@ -43,52 +19,40 @@ class RandomDataModel extends AbstractDataModel {
     return num.toString();
   }
 
-  int? get _pendingNo =>
-      where((item) => item.level >= DataModelSettings.maxLevel && !_excluded.contains(item)).length;
+  int? get _pendingNo {
+    var now = DateTime.now();
+    return where((item) => item.level >= DataModelSettings.hourIndex && item.nextUse.isBefore(now))
+        .length;
+  }
 
   @override
   Item? nextItem(Item? current) {
-    // once per hour reload easy (done) items
-    if (_lastReset!.add(const Duration(hours: 1)).isBefore(DateTime.now())) {
-      _updateExcludedList();
-    }
+    if (current != null) _waitQueue.addFirst(current);
+    if (_waitQueue.length > DataModelSettings.waitQueueWidth) _waitQueue.removeLast();
 
-    if (current != null) _last.addFirst(current);
-    if (_last.length > DataModelSettings.minExclude) _last.removeLast();
-
-    var hset = HashSet.of(_last);
+    var now = DateTime.now();
+    var hset = HashSet.of(_waitQueue);
 
     var items = this
-        .where((item) => !_excluded.contains(item))
         .where((item) => !hset.contains(item))
+        .where((item) => item.level == DataModelSettings.undoneLevel || item.nextUse.isBefore(now))
         .orderByDescending((item) => item.level)
         .toList();
 
     // special case - only few last items are left
     if (items.isEmpty) {
-      if (_last.length < 2) return null;
-      _last.clear();
+      if (_waitQueue.length < 2) return null;
+      _waitQueue.clear();
       return nextItem(current);
     }
 
-    var list = <Item>[];
-    var level = items.first.level;
+    return _getRandomItem(items.take(DataModelSettings.drawWindowWidth).toList());
+  }
 
-    if (level >= DataModelSettings.maxLevel) {
-      //--------- repeating mode
-      for (var item in items) {
-        if (item.level < level) break;
-        list.add(item);
-      }
-    } else {
-      //----------- learn mode
-      for (var item in items) {
-        var num = DataModelSettings.maxLevel - item.level;
-        list.addAll(List.filled(num, item));
-        if (list.length > DataModelSettings.maxCapacity) break;
-      }
-    }
-    return _getRandomItem(list);
+  @override
+  void setSkill(Item item, Skill skill) {
+    item.level = getLevel(item.level, skill);
+    item.lastUse = DateTime.now();
   }
 
   Item _getRandomItem(List<Item> items) {
@@ -98,21 +62,8 @@ class RandomDataModel extends AbstractDataModel {
   }
 
   @override
-  void setLevel(Item item, int level) {
-    item.level = getLevel(item.level, level);
-    item.lastUse = DateTime.now();
-
-    // do no use these items any more in this session
-    if (item.level < DataModelSettings.maxLevel) _excluded.remove(item);
-    if (item.level >= DataModelSettings.maxLevel) _excluded.add(item);
-    if (item.level == DataModelSettings.tailLevel) _excluded.add(item);
-    if (item.level == DataModelSettings.hiddenLevel) _excluded.add(item);
-  }
-
-  @override
   Iterable<Item> resetItems(bool Function(Item) func) sync* {
     var items = super.resetItems(func).toList();
-    _updateExcludedList();
     yield* items;
   }
 }

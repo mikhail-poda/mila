@@ -1,31 +1,64 @@
 import 'package:flutter/material.dart';
 
-enum Level implements Comparable<Level> {
-  again(level: 1, text: "again", color: Colors.orange),
-  good(level: 2, text: "good", color: Colors.lightBlueAccent),
-  easy(level: 3, text: "easy", color: Colors.green);
+enum Skill {
+  again(text: "again", color: Colors.orange),
+  good(text: "good", color: Colors.lightBlueAccent),
+  easy(text: "easy", color: Colors.green);
 
-  const Level({
-    required this.level,
+  const Skill({
     required this.text,
     required this.color,
   });
 
-  final int level;
   final String text;
   final Color? color;
-
-  @override
-  int compareTo(Level other) => index - other.index;
 }
 
 class DataModelSettings {
-  static const maxLevel = 4;
-  static const minExclude = 7; // how many times a used item will be excluded from draw
-  static const maxCapacity = 20; // max pool size, "again" takes 4 places, "easy" or "undone" 1 pl.
+  static const waitQueueWidth = 5; // how many times a used item will be excluded from draw
+  static const drawWindowWidth = 3; // pool size
 
   // not considered
+  static const startLevel = 1;
   static const undoneLevel = 0;
-  static const tailLevel = -1;
-  static const hiddenLevel = -2;
+  static const skipLevel = -1;
+  static const hideLevel = -2;
+
+  // approximate indices
+  static const min10Index = 6;
+  static const hourIndex = 10;
+  static const dayIndex = 17;
+
+  static const fibonacci = [
+    0,
+    1,
+    1,
+    2,
+    3,
+    5,
+    8,
+    13,
+    21,
+    34,
+    55,
+    89,
+    144,
+    233,
+    377,
+    610,
+    987,
+    1597,
+    2584,
+    4181,
+    6765,
+    10946,
+    17711,
+    28657,
+    46368,
+    75025,
+    121393,
+    196418,
+    317811,
+    514229
+  ];
 }

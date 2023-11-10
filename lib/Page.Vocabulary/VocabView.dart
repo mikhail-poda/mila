@@ -93,12 +93,10 @@ class VocabView extends ConsumerWidget {
       itemBuilder: (BuildContext context) => [
         PopupMenuItem<int>(value: 0, enabled: model.isComplete, child: const Text('Skip item')),
         PopupMenuItem<int>(value: 1, enabled: model.isComplete, child: const Text('Hide item')),
-        PopupMenuItem<int>(
-            value: 2, enabled: model.hasPrevious, child: const Text('Previous item')),
+        PopupMenuItem<int>(value: 2, enabled: model.hasPrevious, child: const Text('Previous item')),
         const PopupMenuDivider(),
         const PopupMenuItem<int>(value: 3, child: Text('Reset all items')),
-        PopupMenuItem<int>(
-            value: 4, enabled: model.isComplete, child: const Text('Reset this item')),
+        PopupMenuItem<int>(value: 4, enabled: model.isComplete, child: const Text('Reset this item')),
         const PopupMenuItem<int>(value: 5, child: Text('Reset hidden items')),
       ],
     );
@@ -277,20 +275,20 @@ class VocabView extends ConsumerWidget {
               )
             ]
           : <Widget>[
-              customButton(model, Level.again),
-              customButton(model, Level.good),
-              customButton(model, Level.easy),
+              customButton(model, Skill.again, 4),
+              customButton(model, Skill.good, 5),
+              customButton(model, Skill.easy, 6),
             ],
     );
   }
 
-  FloatingActionButton customButton(VocabModel model, Level level) {
+  FloatingActionButton customButton(VocabModel model, Skill skill, int heroTag) {
     return FloatingActionButton.extended(
-      backgroundColor: level.color,
-      heroTag: level.index + 3,
-      onPressed: () => model.nextItem(level.level),
+      backgroundColor: skill.color,
+      heroTag: heroTag,
+      onPressed: () => model.nextItemForSkill(skill),
       label: Text(
-        level.text,
+        skill.text,
         textScaleFactor: 1.75,
         style: lightFont,
       ),
@@ -298,11 +296,11 @@ class VocabView extends ConsumerWidget {
   }
 
   void _menuSelection(int value, BuildContext context, VocabModel model) {
-    if (value == 0) model.nextItem(DataModelSettings.tailLevel);
-    if (value == 1) model.nextItem(DataModelSettings.hiddenLevel);
+    if (value == 0) model.nextItemForLevel(DataModelSettings.skipLevel);
+    if (value == 1) model.nextItemForLevel(DataModelSettings.hideLevel);
     if (value == 2) model.prevItem();
     if (value == 3) VocabDialogs.resetAllDialog(context, model);
-    if (value == 4) model.nextItem(DataModelSettings.undoneLevel);
-    if (value == 5) model.resetItems((item) => item.level == DataModelSettings.hiddenLevel);
+    if (value == 4) model.nextItemForLevel(DataModelSettings.undoneLevel);
+    if (value == 5) model.resetItems((item) => item.level == DataModelSettings.hideLevel);
   }
 }

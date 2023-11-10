@@ -20,7 +20,12 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   Item? nextItem(Item? current);
 
-  void setLevel(Item item, int level);
+  void setLevel(Item item, int level) {
+    item.level = level;
+    item.lastUse = DateTime.now();
+  }
+
+  void setSkill(Item item, Skill skill);
 
   Iterable<Item> resetItems(bool Function(Item) func) sync* {
     for (var item in _items) {
@@ -31,25 +36,52 @@ abstract class AbstractDataModel with IterableMixin<Item> {
     }
   }
 
-  int getLevel(int itemLevel, int jump) {
-    if (jump <= DataModelSettings.undoneLevel) {
-      return jump;
+  int getLevel(int fromLevel, Skill skill) {
+    var toLevel = _getLevelInternal(fromLevel, skill);
+    return toLevel < DataModelSettings.startLevel
+        ? DataModelSettings.startLevel
+        : toLevel >= DataModelSettings.fibonacci.length
+            ? (DataModelSettings.fibonacci.length - 1)
+            : toLevel;
+  }
+
+  int _getLevelInternal(int fromLevel, Skill skill) {
+    if (fromLevel == DataModelSettings.undoneLevel) {
+      return switch (skill) {
+        Skill.again => DataModelSettings.startLevel,
+        Skill.good => DataModelSettings.min10Index,
+        Skill.easy => DataModelSettings.dayIndex,
+      };
     }
 
-    // learning mode
-    if (itemLevel < DataModelSettings.maxLevel) {
-      if (jump == Level.again.level) return Level.again.level;
-      if (jump == Level.good.level) return Level.good.level;
-
-      // repeat in 16 days 2^(9-5) if the vocable is well known
-      if (itemLevel <= DataModelSettings.undoneLevel) return DataModelSettings.maxLevel + 4;
-      return (itemLevel < Level.easy.level) ? Level.easy.level : itemLevel + 1;
-    } else
-    // repetition mode
-    {
-      if (jump == Level.again.level) return itemLevel ~/ 2;
-      if (jump == Level.good.level) return itemLevel - 1;
-      return itemLevel + 1;
+    if (fromLevel <= DataModelSettings.min10Index) {
+      return switch (skill) {
+        Skill.again => fromLevel - 1,
+        Skill.good => fromLevel + 2,
+        Skill.easy => fromLevel + 4,
+      };
     }
+
+    if (fromLevel <= DataModelSettings.hourIndex) {
+      return switch (skill) {
+        Skill.again => fromLevel - 2,
+        Skill.good => fromLevel + 0,
+        Skill.easy => fromLevel + 3,
+      };
+    }
+
+    if (fromLevel <= DataModelSettings.dayIndex) {
+      return switch (skill) {
+        Skill.again => fromLevel - 4,
+        Skill.good => fromLevel - 2,
+        Skill.easy => fromLevel + 2,
+      };
+    }
+
+    return switch (skill) {
+      Skill.again => fromLevel - 6,
+      Skill.good => fromLevel - 3,
+      Skill.easy => fromLevel + 1,
+    };
   }
 }
