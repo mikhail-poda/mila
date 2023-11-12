@@ -38,11 +38,10 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   int getLevel(int fromLevel, Skill skill) {
     var toLevel = _getLevelInternal(fromLevel, skill);
-    return toLevel < DataModelSettings.startLevel
-        ? DataModelSettings.startLevel
-        : toLevel >= DataModelSettings.fibonacci.length
-            ? (DataModelSettings.fibonacci.length - 1)
-            : toLevel;
+    var minIndex=DataModelSettings.startLevel;
+    var maxIndex = DataModelSettings.fibonacci.length - 1;
+
+    return toLevel < minIndex ? minIndex : toLevel > maxIndex ? maxIndex : toLevel;
   }
 
   int _getLevelInternal(int fromLevel, Skill skill) {

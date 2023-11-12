@@ -68,9 +68,13 @@ abstract class Item implements IItem {
 
   String get links => '';
 
-  String get addTarget => _secondary.select((item, _) => item.target).join("\n");
+  String get addTarget => '';
 
-  String get addTranslation => _secondary.select((item, _) => item.translation).join("\n");
+  String get addTranslation => '';
+
+  String get extTarget => _secondary.select((item, _) => item.target).join("\n");
+
+  String get extTranslation => _secondary.select((item, _) => item.translation).join("\n");
 
   String get longTarget => '';
 
@@ -125,18 +129,10 @@ class TextItem extends Item {
   String get identifier => (_mapper.identifier < 0) ? '' : _line[_mapper.identifier];
 
   @override
-  String get addTarget => _secondary.isNotEmpty
-      ? super.addTarget
-      : (_mapper.addTarget < 0)
-          ? ''
-          : _line[_mapper.addTarget];
+  String get addTarget =>  (_mapper.addTarget < 0) ? '' : _line[_mapper.addTarget];
 
   @override
-  String get addTranslation => _secondary.isNotEmpty
-      ? super.addTranslation
-      : (_mapper.addTranslation < 0)
-          ? ''
-          : _line[_mapper.addTranslation];
+  String get addTranslation => (_mapper.addTranslation < 0) ? '' : _line[_mapper.addTranslation];
 
   @override
   String get longTarget => (_mapper.longTarget < 0) ? '' : _line[_mapper.longTarget];
@@ -206,10 +202,18 @@ void addSecondary(List<Item> items) {
 
 void addSynonyms(List<Item> items) {
   var map = <String, Set<Item>>{};
+  var excluded = <String>{"you"};
 
-  // make a set of items for each word
+  var habaa="הַבָּעָה";
+
+  // make a set of items for each translation, 1:n eng->he
   for (final item in items) {
-    final cell = item.translation.replaceAll(";", ",").split(",").map((s) => clean(s)).toList();
+    final cell = item.translation
+        .replaceAll(";", ",")
+        .split(",")
+        .map((s) => clean(s))
+        .where((s) => !excluded.contains(s))
+        .toList();
 
     for (final str in cell) {
       var set = map[str];
@@ -273,17 +277,6 @@ class Statistics {
   Statistics(List<IItem> list) {
     total = list;
 
-    // orange
-    repeat = list
-        .where((x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hourIndex)
-        .toList();
-
-    // light green
-    done = list.where((x) => x.level >= DataModelSettings.hourIndex && x.level <= DataModelSettings.dayIndex).toList();
-
-    // dark greem
-    doneAll = list.where((x) => x.level > DataModelSettings.dayIndex).toList();
-
     hidden = list.where((element) => element.level == DataModelSettings.hideLevel).toList();
 
     undone = list
@@ -291,5 +284,20 @@ class Statistics {
             element.level == DataModelSettings.undoneLevel ||
             element.level == DataModelSettings.skipLevel)
         .toList();
+
+    // orange
+    repeat = list
+        .where(
+            (x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hourIndex)
+        .toList();
+
+    // light green - between hour and day
+    done = list
+        .where(
+            (x) => x.level >= DataModelSettings.hourIndex && x.level <= DataModelSettings.dayIndex)
+        .toList();
+
+    // dark green
+    doneAll = list.where((x) => x.level > DataModelSettings.dayIndex).toList();
   }
 }

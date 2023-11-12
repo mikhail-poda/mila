@@ -84,12 +84,15 @@ class VocabModel extends ChangeNotifier {
   String get eng0 {
     if (!_showEng || _current == null) return "";
 
-    return _current!.translation;
+    var str = _current!.translation;
+    var repl = str.startsWith("to ") ? "\nto " : "\n";
+
+    return str.replaceAll("; ", repl);
   }
 
   String get he1 {
     if (!_isComplete || _current == null) return "";
-    return _current!.addTarget;
+    return _current!.extTarget;
   }
 
   bool get hasEng1 {
@@ -98,7 +101,7 @@ class VocabModel extends ChangeNotifier {
 
   String get eng1 {
     if (!_isComplete || _current == null) return "";
-    return _current!.addTranslation;
+    return _current!.extTranslation;
   }
 
   String get he2 {
