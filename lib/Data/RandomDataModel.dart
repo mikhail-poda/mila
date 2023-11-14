@@ -35,6 +35,7 @@ class RandomDataModel extends AbstractDataModel {
 
     var items = this
         .where((item) => !hset.contains(item))
+        .where((item) => item.level >= DataModelSettings.undoneLevel )
         .where((item) => item.level == DataModelSettings.undoneLevel || item.nextUse.isBefore(now))
         .orderByDescending((item) => item.level)
         .toList();
@@ -46,7 +47,10 @@ class RandomDataModel extends AbstractDataModel {
       return nextItem(current);
     }
 
-    return _getRandomItem(items.take(DataModelSettings.drawWindowWidth).toList());
+    var level = items[0].level;
+    var pool = items.takeWhile((x) => x.level == level).toList();
+
+    return _getRandomItem(pool);
   }
 
   @override

@@ -16,7 +16,6 @@ enum Skill {
 
 class DataModelSettings {
   static const waitQueueWidth = 5; // how many times a used item will be excluded from draw
-  static const drawWindowWidth = 5; // pool size
 
   // not considered
   static const startLevel = 1;
