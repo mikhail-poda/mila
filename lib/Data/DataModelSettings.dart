@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 enum Skill {
@@ -15,7 +17,7 @@ enum Skill {
 }
 
 class DataModelSettings {
-  static const waitQueueWidth = 5; // how many times a used item will be excluded from draw
+  static const waitQueueWidth = 4; // how many times a used item will be excluded from draw
 
   // not considered
   static const startLevel = 1;
@@ -24,40 +26,12 @@ class DataModelSettings {
   static const hideLevel = -2;
 
   // approximate indices
-  static const min10Index = 6;
-  static const hourIndex = 10;
-  static const dayIndex = 17;
+  static const minutes21Index = 6;
+  static const hours3Index = 10;
+  static const hours60Index = 16;
+  static const yearIndex = 26;
 
-  static const fibonacci = [
-    0,
-    1,
-    1,
-    2,
-    3,
-    5,
-    8,
-    13,
-    21,
-    34,
-    55,
-    89,
-    144,
-    233,
-    377,
-    610,
-    987,
-    1597,
-    2584,
-    4181,
-    6765,
-    10946,
-    17711,
-    28657,
-    46368,
-    75025,
-    121393,
-    196418,
-    317811,
-    514229
-  ];
+  static int calcOffset(int level) {
+    return pow(1.67, level).toInt();
+  }
 }

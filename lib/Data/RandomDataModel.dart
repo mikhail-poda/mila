@@ -21,7 +21,7 @@ class RandomDataModel extends AbstractDataModel {
 
   int? get _pendingNo {
     var now = DateTime.now();
-    return where((item) => item.level >= DataModelSettings.hourIndex && item.nextUse.isBefore(now))
+    return where((item) => item.level >= DataModelSettings.hours3Index && item.nextUse.isBefore(now))
         .length;
   }
 

@@ -39,7 +39,7 @@ class SerialItem implements IItem {
       this.identifier, this.target, this.translation, this.level, this.lastUse, this.phonetic);
 
   DateTime get nextUse {
-    var offset = DataModelSettings.fibonacci[level];
+    var offset = DataModelSettings.calcOffset(level);
     var next = lastUse!.add(Duration(minutes: offset));
     return next;
   }

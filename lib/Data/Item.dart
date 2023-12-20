@@ -85,7 +85,7 @@ abstract class Item implements IItem {
   }
 
   DateTime get nextUse {
-    var offset = DataModelSettings.fibonacci[level];
+    var offset = DataModelSettings.calcOffset(level);
     var next = lastUse!.add(Duration(minutes: offset));
     return next;
   }
@@ -288,16 +288,16 @@ class Statistics {
     // orange
     repeat = list
         .where(
-            (x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hourIndex)
+            (x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hours3Index)
         .toList();
 
     // light green - between hour and day
     done = list
         .where(
-            (x) => x.level >= DataModelSettings.hourIndex && x.level <= DataModelSettings.dayIndex)
+            (x) => x.level >= DataModelSettings.hours3Index && x.level <= DataModelSettings.hours60Index)
         .toList();
 
     // dark green
-    doneAll = list.where((x) => x.level > DataModelSettings.dayIndex).toList();
+    doneAll = list.where((x) => x.level > DataModelSettings.hours60Index).toList();
   }
 }

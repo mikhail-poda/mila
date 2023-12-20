@@ -38,22 +38,26 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   int getLevel(int fromLevel, Skill skill) {
     var toLevel = _getLevelInternal(fromLevel, skill);
-    var minIndex=DataModelSettings.startLevel;
-    var maxIndex = DataModelSettings.fibonacci.length - 1;
+    var minIndex = DataModelSettings.startLevel;
+    var maxIndex = DataModelSettings.yearIndex;
 
-    return toLevel < minIndex ? minIndex : toLevel > maxIndex ? maxIndex : toLevel;
+    return toLevel < minIndex
+        ? minIndex
+        : toLevel > maxIndex
+            ? maxIndex
+            : toLevel;
   }
 
   int _getLevelInternal(int fromLevel, Skill skill) {
     if (fromLevel == DataModelSettings.undoneLevel) {
       return switch (skill) {
         Skill.again => DataModelSettings.startLevel,
-        Skill.good => DataModelSettings.min10Index,
-        Skill.easy => DataModelSettings.dayIndex,
+        Skill.good => DataModelSettings.minutes21Index,
+        Skill.easy => DataModelSettings.hours60Index,
       };
     }
 
-    if (fromLevel <= DataModelSettings.min10Index) {
+    if (fromLevel <= DataModelSettings.minutes21Index) {
       return switch (skill) {
         Skill.again => fromLevel - 1,
         Skill.good => fromLevel + 2,
@@ -61,7 +65,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
       };
     }
 
-    if (fromLevel <= DataModelSettings.hourIndex) {
+    if (fromLevel <= DataModelSettings.hours3Index) {
       return switch (skill) {
         Skill.again => fromLevel - 2,
         Skill.good => fromLevel + 0,
@@ -69,7 +73,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
       };
     }
 
-    if (fromLevel <= DataModelSettings.dayIndex) {
+    if (fromLevel <= DataModelSettings.hours60Index) {
       return switch (skill) {
         Skill.again => fromLevel - 4,
         Skill.good => fromLevel - 2,

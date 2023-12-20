@@ -37,13 +37,13 @@ class SourceError {
       return SourceError(name, items.length, msg, dsc);
     }
 
-    var commas = items.where((element) => element.target.contains(',')).toList();
-    if (commas.isNotEmpty) {
-      var msg = 'Error: ${commas.length} entries contain commas.';
-      var dsc = commas.select((i, j) => '${i.target}   ${i.translation}').join('\n');
-
-      return SourceError(name, items.length, msg, dsc);
-    }
+    // var commas = items.where((element) => element.target.contains(',')).toList();
+    // if (commas.isNotEmpty) {
+    //   var msg = 'Error: ${commas.length} entries contain commas.';
+    //   var dsc = commas.select((i, j) => '${i.target}   ${i.translation}').join('\n');
+    //
+    //   return SourceError(name, items.length, msg, dsc);
+    // }
 
     return null;
   }
