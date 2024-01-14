@@ -21,8 +21,8 @@ class RandomDataModel extends AbstractDataModel {
 
   int? get _pendingNo {
     var now = DateTime.now();
-    return where((item) => item.level >= DataModelSettings.hours3Index && item.nextUse.isBefore(now))
-        .length;
+    return where(
+        (item) => item.level >= DataModelSettings.hours3Index && item.nextUse.isBefore(now)).length;
   }
 
   @override
@@ -35,7 +35,7 @@ class RandomDataModel extends AbstractDataModel {
 
     var items = this
         .where((item) => !hset.contains(item))
-        .where((item) => item.level >= DataModelSettings.undoneLevel )
+        .where((item) => item.level >= DataModelSettings.undoneLevel)
         .where((item) => item.level == DataModelSettings.undoneLevel || item.nextUse.isBefore(now))
         .orderByDescending((item) => item.level)
         .toList();
@@ -48,7 +48,11 @@ class RandomDataModel extends AbstractDataModel {
     }
 
     var level = items[0].level;
-    var pool = items.takeWhile((x) => x.level == level).toList();
+    var pool = items.takeWhile((x) => x.level >= level).toList();
+
+    // take the shortest form
+    if (level == DataModelSettings.undoneLevel && pool.length > 20)
+      pool = pool.orderBy((item) => item.target.length).take(items.length >> 2).toList();
 
     return _getRandomItem(pool);
   }

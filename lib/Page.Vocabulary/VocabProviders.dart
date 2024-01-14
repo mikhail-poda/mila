@@ -21,14 +21,20 @@ final vocabProvider = ChangeNotifierProvider<VocabModel>((ref) {
 });
 
 Future<ModelOrError> _getVocabModel(String sourceName) async {
-  var source = GetIt.I<ISource>().loadVocabulary(sourceName);
+  var sheets = ["A0", "A1", "A2", "B1"];
+  var items = GetIt.I<ISource>().loadVocabulary(sourceName).toList();
+  var ind = sheets.indexOf(sourceName);
 
-  var items = source.toList();
+  for (var i = 0; i < ind; i++) {
+    var prev = GetIt.I<ISource>().loadVocabulary(sheets[i]).toList();
+    items.addAll(prev);
+  }
+
   final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 
-  addSecondary(items);
   addSynonyms(items);
+  addHomonyms(items);
 
   final serializer = GetIt.I<ISerializer>();
   final model = VocabModel(sourceName, items, serializer);

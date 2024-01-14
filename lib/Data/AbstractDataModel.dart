@@ -53,7 +53,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
       return switch (skill) {
         Skill.again => DataModelSettings.startLevel,
         Skill.good => DataModelSettings.minutes21Index,
-        Skill.easy => DataModelSettings.hours60Index,
+        Skill.easy => DataModelSettings.weeks5Index,
       };
     }
 

@@ -29,6 +29,7 @@ class DataModelSettings {
   static const minutes21Index = 6;
   static const hours3Index = 10;
   static const hours60Index = 16;
+  static const weeks5Index = 21;
   static const yearIndex = 26;
 
   static int calcOffset(int level) {

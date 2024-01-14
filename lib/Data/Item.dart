@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:darq/darq.dart';
-import 'package:collection/collection.dart' show IterableZip;
 
 import '../Library/Library.dart';
 import 'DataModelSettings.dart';
@@ -12,8 +9,6 @@ class Mapper {
   late int identifier = -1;
   late int phonetic = -1;
   late int translation = -1;
-  late int addTarget = -1;
-  late int addTranslation = -1;
   late int longTarget = -1;
   late int longTranslation = -1;
 
@@ -23,14 +18,11 @@ class Mapper {
     identifier = line.indexOf('identifier');
     phonetic = line.indexOf('phonetic');
     translation = line.indexOf('translation');
-    addTarget = line.indexOf('add_target');
-    addTranslation = line.indexOf('add_translation');
     longTarget = line.indexOf('long_target');
     longTranslation = line.indexOf('long_translation');
 
     if (phonetic == -1) phonetic = line.indexWhere((str) => str.startsWith('pho_'));
     if (translation == -1) translation = line.indexWhere((str) => str.startsWith('tra_'));
-    if (addTranslation == -1) addTranslation = line.indexWhere((str) => str.startsWith('add_tra_'));
     if (longTranslation == -1) {
       longTranslation = line.indexWhere((str) => str.startsWith('long_tra_'));
     }
@@ -50,11 +42,15 @@ abstract class Item implements IItem {
 
   late String _id;
 
+  late String _haser;
+
   @override
   int level = DataModelSettings.undoneLevel;
   DateTime lastUse = DateTime.now();
 
   String get id => _id;
+
+  String get haser => _haser;
 
   @override
   String get target;
@@ -68,10 +64,6 @@ abstract class Item implements IItem {
 
   String get links => '';
 
-  String get addTarget => '';
-
-  String get addTranslation => '';
-
   String get extTarget => _secondary.select((item, _) => item.target).join("\n");
 
   String get extTranslation => _secondary.select((item, _) => item.translation).join("\n");
@@ -81,7 +73,8 @@ abstract class Item implements IItem {
   String get longTranslation => '';
 
   Item() {
-    _id = haserNikud(target) + identifier;
+    _haser = haserNikud(target);
+    _id = _haser + identifier;
   }
 
   DateTime get nextUse {
@@ -89,22 +82,6 @@ abstract class Item implements IItem {
     var next = lastUse!.add(Duration(minutes: offset));
     return next;
   }
-}
-
-class AdditionalItem extends Item {
-  late final String _target;
-  late final String _translation;
-
-  @override
-  String get identifier => "";
-
-  @override
-  String get target => _target;
-
-  @override
-  String get translation => _translation;
-
-  AdditionalItem(this._target, this._translation) : super();
 }
 
 class TextItem extends Item {
@@ -129,12 +106,6 @@ class TextItem extends Item {
   String get identifier => (_mapper.identifier < 0) ? '' : _line[_mapper.identifier];
 
   @override
-  String get addTarget =>  (_mapper.addTarget < 0) ? '' : _line[_mapper.addTarget];
-
-  @override
-  String get addTranslation => (_mapper.addTranslation < 0) ? '' : _line[_mapper.addTranslation];
-
-  @override
   String get longTarget => (_mapper.longTarget < 0) ? '' : _line[_mapper.longTarget];
 
   @override
@@ -157,45 +128,27 @@ Iterable<Item> fromLines(List<List<String>> lines) sync* {
   }
 }
 
-void addSecondary(List<Item> items) {
-  var map1 = items.toMap((e) => MapEntry(e.id, e), modifiable: true);
-  var map2 = items.toMap((e) => MapEntry(e.target, e), modifiable: true);
+void addHomonyms(List<Item> items) {
+  var map = <String, Set<Item>>{};
 
-  for (var item in items.toList()) {
-    var addTarget = item.addTarget.trim();
-    var addTranslation = item.addTranslation.trim();
-
-    if (addTarget.isEmpty) continue;
-    if (addTranslation.isEmpty) addTranslation = item.translation;
-
-    var targetList = addTarget.split('/');
-    var translationList = addTranslation.split('/');
-
-    if (targetList.length == 1 && targetList[0].contains(',')) {
-      targetList = targetList[0].split(',');
+  for (final item in items) {
+    var set = map[item.haser];
+    if (set == null) {
+      set = <Item>{};
+      map[item.haser] = set;
     }
+    set.add(item);
+  }
 
-    if (translationList.length == 1 && targetList.length > 1) {
-      translationList = List.filled(targetList.length, translationList[0]);
-    }
-
-    var secondary = IterableZip([targetList, translationList]);
-
-    for (var entry in secondary) {
-      var target = entry[0].trim();
-      var transl = entry[1].trim();
-
-      var he = haserNikud(target);
-      var other = map1[he] ?? map2[target];
-
-      if (other == null) {
-        other = AdditionalItem(target, transl);
-        map1[he] = other;
-        items.add(other);
+  // make a list of synonyms for each item
+  for (final set in map.values) {
+    if (set.length == 1) continue;
+    for (final ii in set) {
+      for (final jj in set) {
+        if (identical(ii, jj)) continue;
+        ii._secondary.add(jj);
+        jj._secondary.add(ii);
       }
-
-      item._secondary.add(other);
-      other._secondary.add(item);
     }
   }
 }
@@ -204,12 +157,12 @@ void addSynonyms(List<Item> items) {
   var map = <String, Set<Item>>{};
   var excluded = <String>{"you"};
 
-  var habaa="הַבָּעָה";
-
   // make a set of items for each translation, 1:n eng->he
   for (final item in items) {
     final cell = item.translation
         .replaceAll(";", ",")
+        .replaceAll("!", ",")
+        .replaceAll("?", ",")
         .split(",")
         .map((s) => clean(s))
         .where((s) => !excluded.contains(s))
@@ -251,7 +204,7 @@ void addSynonyms(List<Item> items) {
   }
 }
 
-/// verbs can start with 'to' and
+/// verbs can start with 'to' and be
 String clean(String s) {
   s = s.trim();
 
@@ -287,14 +240,14 @@ class Statistics {
 
     // orange
     repeat = list
-        .where(
-            (x) => x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hours3Index)
+        .where((x) =>
+            x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hours3Index)
         .toList();
 
     // light green - between hour and day
     done = list
-        .where(
-            (x) => x.level >= DataModelSettings.hours3Index && x.level <= DataModelSettings.hours60Index)
+        .where((x) =>
+            x.level >= DataModelSettings.hours3Index && x.level <= DataModelSettings.hours60Index)
         .toList();
 
     // dark green

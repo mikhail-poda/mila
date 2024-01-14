@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:mila/Constants.dart';
 import 'package:mila/IO/Settings.dart';
 
 import '../Data/DataModelSettings.dart';
@@ -31,8 +30,6 @@ class HiveSerializer implements ISerializer {
 
     _itemsBox = await Hive.openBox<SerialItem>('ItemBox.1');
     _settingsBox = await Hive.openBox<Settings>('SettingsBox.1');
-
-
   }
 
   @override
