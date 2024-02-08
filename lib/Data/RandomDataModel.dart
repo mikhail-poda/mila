@@ -36,6 +36,7 @@ class RandomDataModel extends AbstractDataModel {
     var items = this
         .where((item) => !hset.contains(item))
         .where((item) => item.level >= DataModelSettings.undoneLevel)
+        .where((item) => item.level <= DataModelSettings.yearIndex)
         .where((item) => item.level == DataModelSettings.undoneLevel || item.nextUse.isBefore(now))
         .orderByDescending((item) => item.level)
         .toList();
@@ -51,8 +52,9 @@ class RandomDataModel extends AbstractDataModel {
     var pool = items.takeWhile((x) => x.level >= level).toList();
 
     // take the shortest form
-    if (level == DataModelSettings.undoneLevel && pool.length > 20)
-      pool = pool.orderBy((item) => item.target.length).take(items.length >> 2).toList();
+    if (level == DataModelSettings.undoneLevel && pool.length > 20) {
+      pool = pool.orderBy((item) => item.complexity).take(items.length >> 1).toList();
+    }
 
     return _getRandomItem(pool);
   }
@@ -67,11 +69,5 @@ class RandomDataModel extends AbstractDataModel {
     var size = items.length;
     var ind = _random.nextInt(size);
     return items[ind];
-  }
-
-  @override
-  Iterable<Item> resetItems(bool Function(Item) func) sync* {
-    var items = super.resetItems(func).toList();
-    yield* items;
   }
 }

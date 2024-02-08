@@ -27,10 +27,10 @@ abstract class AbstractDataModel with IterableMixin<Item> {
 
   void setSkill(Item item, Skill skill);
 
-  Iterable<Item> resetItems(bool Function(Item) func) sync* {
+  Iterable<Item> resetItems(bool Function(Item) func, int level) sync* {
     for (var item in _items) {
       if (func(item)) {
-        item.level = DataModelSettings.undoneLevel;
+        item.level = level;
         yield item;
       }
     }
@@ -39,13 +39,7 @@ abstract class AbstractDataModel with IterableMixin<Item> {
   int getLevel(int fromLevel, Skill skill) {
     var toLevel = _getLevelInternal(fromLevel, skill);
     var minIndex = DataModelSettings.startLevel;
-    var maxIndex = DataModelSettings.yearIndex;
-
-    return toLevel < minIndex
-        ? minIndex
-        : toLevel > maxIndex
-            ? maxIndex
-            : toLevel;
+    return toLevel < minIndex ? minIndex : toLevel;
   }
 
   int _getLevelInternal(int fromLevel, Skill skill) {

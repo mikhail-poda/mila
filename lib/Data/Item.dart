@@ -4,6 +4,7 @@ import '../Library/Library.dart';
 import 'DataModelSettings.dart';
 
 class Mapper {
+  late int root = -1;
   late int links = -1;
   late int target = -1;
   late int identifier = -1;
@@ -13,6 +14,7 @@ class Mapper {
   late int longTranslation = -1;
 
   Mapper(List<String> line) {
+    root = line.indexOf('root');
     links = line.indexOf('links');
     target = line.indexOf('target');
     identifier = line.indexOf('identifier');
@@ -37,12 +39,15 @@ abstract class IItem {
   String get translation;
 }
 
-abstract class Item implements IItem {
+class Item implements IItem {
   final Set<Item> _secondary = <Item>{};
 
   late String _id;
-
   late String _haser;
+  late int _complexity;
+
+  late final Mapper _mapper;
+  late final List<String> _line;
 
   @override
   int level = DataModelSettings.undoneLevel;
@@ -52,43 +57,10 @@ abstract class Item implements IItem {
 
   String get haser => _haser;
 
-  @override
-  String get target;
+  int get complexity => _complexity;
 
   @override
-  String get translation;
-
-  String get identifier;
-
-  String get phonetic => '';
-
-  String get links => '';
-
-  String get extTarget => _secondary.select((item, _) => item.target).join("\n");
-
-  String get extTranslation => _secondary.select((item, _) => item.translation).join("\n");
-
-  String get longTarget => '';
-
-  String get longTranslation => '';
-
-  Item() {
-    _haser = haserNikud(target);
-    _id = _haser + identifier;
-  }
-
-  DateTime get nextUse {
-    var offset = DataModelSettings.calcOffset(level);
-    var next = lastUse!.add(Duration(minutes: offset));
-    return next;
-  }
-}
-
-class TextItem extends Item {
-  late final Mapper _mapper;
-  late final List<String> _line;
-
-  TextItem(this._line, this._mapper) : super();
+  String get root => _line[_mapper.root];
 
   @override
   String get target => _line[_mapper.target];
@@ -110,6 +82,22 @@ class TextItem extends Item {
 
   @override
   String get longTranslation => (_mapper.longTranslation < 0) ? '' : _line[_mapper.longTranslation];
+
+  String get extTarget => _secondary.select((item, _) => item.target).join("\n");
+
+  String get extTranslation => _secondary.select((item, _) => item.translation).join("\n");
+
+  Item(this._line, this._mapper) {
+    _haser = haserNikud(target);
+    _id = _haser + identifier;
+    _complexity = _haser.length + 5 * RegExp(r'\s').allMatches(_haser).length;
+  }
+
+  DateTime get nextUse {
+    var offset = DataModelSettings.calcOffset(level);
+    var next = lastUse!.add(Duration(minutes: offset));
+    return next;
+  }
 }
 
 Iterable<Item> fromLines(List<List<String>> lines) sync* {
@@ -121,7 +109,7 @@ Iterable<Item> fromLines(List<List<String>> lines) sync* {
   Mapper mapper = Mapper(lines.first);
 
   for (var line in lines.skip(1)) {
-    var item = TextItem(line, mapper);
+    var item = Item(line, mapper);
     if (hasHebrew(item.target) && item.translation.isNotEmpty) {
       yield item;
     }
@@ -153,18 +141,88 @@ void addHomonyms(List<Item> items) {
   }
 }
 
+Set<Set<String>> cognateRoots = {
+  {'א - ו - ת', 'א - י - ת'},
+  {'ק - ו - ם', 'ק - י - ם'},
+  {'ח - ל - ל', 'ת - ח - ל'},
+  {'כ - ו - ל', 'כ - ל - ל'},
+  {'א - ס - ף', 'י - ס - ף'},
+  {'ה - ו - ה', 'ה - י - ה', 'ח - י - ה', 'ח - ו - ה'},
+};
+
+void addSameRoot(List<Item> items) {
+  // prepare cognate dict
+  var cognate = <String, String>{};
+  for (final set in cognateRoots) {
+    var common = set.join(' : ');
+    for (var root in set) {
+      cognate[root] = common;
+    }
+  }
+
+  var map = <String, Set<Item>>{};
+
+  // make a set of items for each translation, 1:n eng->he
+  for (final item in items) {
+    if (item.root.isEmpty) continue;
+    if (item.target.contains(",")) continue;
+
+    final cell = item.root
+        .split(",")
+        .map((s) => cognate[s] ?? s)
+        .where((s) => s != null && s.isNotEmpty)
+        .toList();
+
+    for (final str in cell) {
+      if (str == null) continue;
+      var set = map[str];
+      if (set == null) {
+        set = <Item>{};
+        map[str] = set;
+      }
+      set.add(item);
+    }
+  }
+
+  var syn = <Item, Set<Item>>{};
+
+  // make a list of synonyms for each item
+  for (final set in map.values) {
+    if (set.length == 1) continue;
+    for (final item in set) {
+      var iset = syn[item];
+      if (iset == null) {
+        iset = <Item>{};
+        syn[item] = iset;
+      }
+      iset.addAll(set);
+    }
+  }
+
+  // add synonyms to item content
+  for (final entry in syn.entries) {
+    var item = entry.key;
+    var iset = entry.value;
+
+    for (final other in iset) {
+      if (item != other) item._secondary.add(other);
+    }
+  }
+}
+
 void addSynonyms(List<Item> items) {
   var map = <String, Set<Item>>{};
   var excluded = <String>{"you"};
 
   // make a set of items for each translation, 1:n eng->he
   for (final item in items) {
+    if (item.target.contains(",")) continue;
+
     final cell = item.translation
         .replaceAll(";", ",")
-        .replaceAll("!", ",")
-        .replaceAll("?", ",")
         .split(",")
         .map((s) => clean(s))
+        .where((s) => s.isNotEmpty)
         .where((s) => !excluded.contains(s))
         .toList();
 

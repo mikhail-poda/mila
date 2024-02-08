@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mila/Page.Vocabulary/VocabProviders.dart';
@@ -12,7 +10,6 @@ import '../Data/SourceError.dart';
 import '../Library/Widgets.dart';
 import 'VocabDialogs.dart';
 import 'VocabModel.dart';
-import '../main.dart';
 
 typedef ModelOrError = Result<VocabModel, SourceError>;
 
@@ -48,9 +45,11 @@ class VocabView extends ConsumerWidget {
         body: Center(
             child: SingleChildScrollView(
                 child: Text(error.description,
-                    textScaleFactor: 1.75, style: lightFont, textAlign: TextAlign.center))),
+                    textScaler: const TextScaler.linear(1.75),
+                    style: lightFont,
+                    textAlign: TextAlign.center))),
         bottomNavigationBar: Text(error.message,
-            textScaleFactor: 2,
+            textScaler: const TextScaler.linear(2),
             textAlign: TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
       );
@@ -68,7 +67,7 @@ class VocabView extends ConsumerWidget {
           body: const Center(
               child: Text(
             "Nothing to learn for today!",
-            textScaleFactor: 2,
+            textScaler: TextScaler.linear(2),
             style: lightFont,
             textAlign: TextAlign.center,
           )));
@@ -92,11 +91,14 @@ class VocabView extends ConsumerWidget {
       itemBuilder: (BuildContext context) => [
         PopupMenuItem<int>(value: 0, enabled: model.isComplete, child: const Text('Skip item')),
         PopupMenuItem<int>(value: 1, enabled: model.isComplete, child: const Text('Hide item')),
-        PopupMenuItem<int>(value: 2, enabled: model.hasPrevious, child: const Text('Previous item')),
+        PopupMenuItem<int>(
+            value: 2, enabled: model.hasPrevious, child: const Text('Previous item')),
         const PopupMenuDivider(),
         const PopupMenuItem<int>(value: 3, child: Text('Reset all items')),
-        PopupMenuItem<int>(value: 4, enabled: model.isComplete, child: const Text('Reset this item')),
+        PopupMenuItem<int>(
+            value: 4, enabled: model.isComplete, child: const Text('Reset this item')),
         const PopupMenuItem<int>(value: 5, child: Text('Reset hidden items')),
+        const PopupMenuItem<int>(value: 6, child: Text('Mark all items as learned')),
       ],
     );
   }
@@ -114,7 +116,7 @@ class VocabView extends ConsumerWidget {
                 statisticsRow(context, stat),
                 Text(
                   model.message,
-                  textScaleFactor: 4,
+                  textScaler: const TextScaler.linear(4),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.black12),
                 )
@@ -146,37 +148,37 @@ class VocabView extends ConsumerWidget {
   }
 
   Widget linksRow(VocabModel model) {
-    var links = model.links;
-    var widgets = <TextButton>[];
+    // var links = model.links;
+    // var widgets = <TextButton>[];
+    //
+    // if (links.length == 1) {
+    //   widgets.add(textLink("link", 2.25, links[0], fontWeight: FontWeight.normal));
+    // } else {
+    //   for (var i = 0; i < links.length; i++) {
+    //     widgets.add(textLink("link ${i + 1}", 2.25, links[i], fontWeight: FontWeight.normal));
+    //   }
+    // }
 
-    if (links.length == 1) {
-      widgets.add(textLink("link", 2.25, links[0], fontWeight: FontWeight.normal));
-    } else {
-      for (var i = 0; i < links.length; i++) {
-        widgets.add(textLink("link ${i + 1}", 2.25, links[i], fontWeight: FontWeight.normal));
-      }
-    }
-
-    return Column(children: [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: widgets,
-      ),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          textLink('פ', 2.5, 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
-          textLink('m', 3.0, 'https://www.morfix.co.il/${model.currentItem!.target}'),
-          textLink('מ', 2.5, 'https://milog.co.il/${model.currentItem!.target}'),
-          textLink('g', 3.0,
-              'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
-          textLink('r', 3.0,
-              'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.target}')
-        ],
-      )
-    ]);
+    // return Column(children: [
+    //   Row(
+    //     crossAxisAlignment: CrossAxisAlignment.center,
+    //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+    //     children: widgets,
+    //   ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        textLink('פ', 2.5, 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
+        textLink('m', 3.0, 'https://www.morfix.co.il/${model.currentItem!.target}'),
+        textLink('מ', 2.5, 'https://milog.co.il/${model.currentItem!.target}'),
+        textLink('g', 3.0,
+            'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
+        textLink('r', 3.0,
+            'https://context.reverso.net/translation/hebrew-english/${model.currentItem!.target}')
+      ],
+    );
+    //]);
   }
 
   TextButton textLink(String name, double factor, String link,
@@ -186,89 +188,92 @@ class VocabView extends ConsumerWidget {
         child: Text(name,
             textDirection: TextDirection.rtl,
             overflow: TextOverflow.clip,
-            textScaleFactor: factor, // bigger fonts for latin
+            textScaler: TextScaler.linear(factor), // bigger fonts for latin
             style: TextStyle(color: color, fontWeight: fontWeight)));
   }
 
   List<Widget> _content(VocabModel model) {
+    var heScale = model.he0.length < 12 ? 2.25 : 2.0;
+
     return <Widget>[
       (model.guessMode == GuessMode.eng
           ? Text(
               model.eng0,
-              textScaleFactor: 2,
+              textScaler: const TextScaler.linear(2),
               style: lightFont,
             )
           : Text(
               model.he0,
-              textScaleFactor: 2,
+              textScaler: TextScaler.linear(heScale),
               style: boldFont,
               textDirection: TextDirection.rtl,
               overflow: TextOverflow.clip,
             )),
       const Text("_______________________________________"),
       (model.guessMode == GuessMode.eng
-          ? Text(model.he0, textScaleFactor: 2, style: boldFont, textDirection: TextDirection.rtl)
+          ? Text(model.he0,
+              textScaler: TextScaler.linear(heScale),
+              style: boldFont,
+              textDirection: TextDirection.rtl)
           : Text(
               model.eng0,
-              textScaleFactor: 2,
+              textScaler: const TextScaler.linear(2),
               overflow: TextOverflow.clip,
               style: lightFont,
             )),
       Text(
         model.phonetic,
-        textScaleFactor: 1.75,
+        textScaler: const TextScaler.linear(1.75),
         overflow: TextOverflow.clip,
         style: italicFont,
       ),
       const Text(""),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: model.hasEng1
-            ? [
-                Text(model.he1, textScaleFactor: 1.75, textDirection: TextDirection.rtl),
+      Flexible(
+        child: Scrollbar(
+          child: SingleChildScrollView(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(model.he1,
+                    textScaler: const TextScaler.linear(1.75), textDirection: TextDirection.rtl),
                 const Text("   "),
                 Text(
                   model.eng1,
-                  textScaleFactor: 1.75,
+                  textScaler: const TextScaler.linear(1.75),
                   overflow: TextOverflow.clip,
                   style: lightFont,
                 )
-              ]
-            : [
-                Text(
-                  model.he1,
-                  textScaleFactor: 1.75,
-                  textDirection: TextDirection.rtl,
-                  overflow: TextOverflow.clip,
-                ),
               ],
+            ),
+          ),
+        ),
       ),
-      const Text(""),
-      textLink(model.he2, 1.75, 'https://translate.google.com/?sl=iw&tl=en&text=${model.he2}',
-          color: Colors.black, fontWeight: FontWeight.normal),
-      Text(
-        model.eng2,
-        textScaleFactor: 1.75,
-        overflow: TextOverflow.clip,
-        style: lightFont,
-      ),
+      if (model.he2.isNotEmpty) ...[
+        const Text(""),
+        textLink(model.he2, 1.75, 'https://translate.google.com/?sl=iw&tl=en&text=${model.he2}',
+            color: Colors.black, fontWeight: FontWeight.normal),
+        Text(
+          model.eng2,
+          textScaler: const TextScaler.linear(1.75),
+          overflow: TextOverflow.clip,
+          style: lightFont,
+        ),
+      ]
     ];
   }
 
   Widget _buttons(VocabModel model) {
-    var val = AppConfig.blockWidth / 3;
-    var textScaleFactor = max(min(2.0, val), 1.0);
-
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: !model.isComplete
           ? <Widget>[
               FloatingActionButton.extended(
                 heroTag: 1,
+                backgroundColor: Colors.cyan,
                 onPressed: () => model.showComplete(),
                 label: const Text(
                   "           Show           ",
-                  textScaleFactor: 1.75,
+                  textScaler: TextScaler.linear(1.75),
                   style: lightFont,
                 ),
               )
@@ -288,7 +293,7 @@ class VocabView extends ConsumerWidget {
       onPressed: () => model.nextItemForSkill(skill),
       label: Text(
         skill.text,
-        textScaleFactor: 1.75,
+        textScaler: const TextScaler.linear(1.75),
         style: lightFont,
       ),
     );
@@ -300,6 +305,10 @@ class VocabView extends ConsumerWidget {
     if (value == 2) model.prevItem();
     if (value == 3) VocabDialogs.resetAllDialog(context, model);
     if (value == 4) model.nextItemForLevel(DataModelSettings.undoneLevel);
-    if (value == 5) model.resetItems((item) => item.level == DataModelSettings.hideLevel);
+    if (value == 5) {
+      model.resetItems(
+          (item) => item.level == DataModelSettings.hideLevel, DataModelSettings.undoneLevel);
+    }
+    if (value == 6) model.resetItems((item) => true, DataModelSettings.yearIndex + 1);
   }
 }

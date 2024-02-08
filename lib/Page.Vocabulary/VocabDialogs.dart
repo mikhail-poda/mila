@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../Data/DataModelSettings.dart';
 import 'VocabModel.dart';
 
 const lightFont = TextStyle(fontWeight: FontWeight.w300);
@@ -33,6 +34,6 @@ class VocabDialogs {
       },
     );
 
-    if (result) model.resetItems((i) => true);
+    if (result) model.resetItems((i) => true, DataModelSettings.undoneLevel);
   }
 }

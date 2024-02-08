@@ -95,10 +95,6 @@ class VocabModel extends ChangeNotifier {
     return _current!.extTarget;
   }
 
-  bool get hasEng1 {
-    return eng1.isNotEmpty;
-  }
-
   String get eng1 {
     if (!_isComplete || _current == null) return "";
     return _current!.extTranslation;
@@ -208,8 +204,8 @@ class VocabModel extends ChangeNotifier {
     }
   }
 
-  void resetItems(bool Function(Item) func) {
-    var items = _model.resetItems(func);
+  void resetItems(bool Function(Item) func, int level) {
+    var items = _model.resetItems(func, level);
     for (var item in items) {
       _serializer.push(item!);
     }
