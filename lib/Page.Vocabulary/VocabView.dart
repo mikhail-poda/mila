@@ -1,5 +1,8 @@
+import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mila/IO/ISerializer.dart';
 import 'package:mila/Page.Vocabulary/VocabProviders.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -8,6 +11,8 @@ import '../Data/Item.dart';
 import '../Library/Result.dart';
 import '../Data/SourceError.dart';
 import '../Library/Widgets.dart';
+import '../Page.Sources/SourceDialogs.dart';
+import 'SIngleChildScrollableWithHints.dart';
 import 'VocabDialogs.dart';
 import 'VocabModel.dart';
 
@@ -94,11 +99,12 @@ class VocabView extends ConsumerWidget {
         PopupMenuItem<int>(
             value: 2, enabled: model.hasPrevious, child: const Text('Previous item')),
         const PopupMenuDivider(),
-        const PopupMenuItem<int>(value: 3, child: Text('Reset all items')),
+        const PopupMenuItem<int>(value: 3, child: Text('Export vocabulary')),
+        const PopupMenuItem<int>(value: 4, child: Text('Reset all items')),
         PopupMenuItem<int>(
-            value: 4, enabled: model.isComplete, child: const Text('Reset this item')),
-        const PopupMenuItem<int>(value: 5, child: Text('Reset hidden items')),
-        const PopupMenuItem<int>(value: 6, child: Text('Mark all items as learned')),
+            value: 5, enabled: model.isComplete, child: const Text('Reset this item')),
+        const PopupMenuItem<int>(value: 6, child: Text('Reset hidden items')),
+        const PopupMenuItem<int>(value: 7, child: Text('Mark all items as learned')),
       ],
     );
   }
@@ -172,6 +178,8 @@ class VocabView extends ConsumerWidget {
         textLink('פ', 2.5, 'https://www.pealim.com/search/?q=${model.currentItem!.target}'),
         textLink('m', 3.0, 'https://www.morfix.co.il/${model.currentItem!.target}'),
         textLink('מ', 2.5, 'https://milog.co.il/${model.currentItem!.target}'),
+        textLink('T', 3.0,
+            'https://tatoeba.org/en/sentences/search?from=heb&query=${model.currentItem!.target}&to=eng'),
         textLink('g', 3.0,
             'https://translate.google.com/?sl=iw&tl=en&text=${model.currentItem!.target}'),
         textLink('r', 3.0,
@@ -207,9 +215,10 @@ class VocabView extends ConsumerWidget {
               textScaler: TextScaler.linear(heScale),
               style: boldFont,
               textDirection: TextDirection.rtl,
-              overflow: TextOverflow.clip,
+              overflow: TextOverflow.ellipsis,
             )),
-      const Text("_______________________________________"),
+      const Text("_______________________________________",
+          style: TextStyle(color: Colors.black26)),
       (model.guessMode == GuessMode.eng
           ? Text(model.he0,
               textScaler: TextScaler.linear(heScale),
@@ -218,48 +227,102 @@ class VocabView extends ConsumerWidget {
           : Text(
               model.eng0,
               textScaler: const TextScaler.linear(2),
-              overflow: TextOverflow.clip,
+              overflow: TextOverflow.ellipsis,
               style: lightFont,
             )),
       Text(
         model.phonetic,
         textScaler: const TextScaler.linear(1.75),
-        overflow: TextOverflow.clip,
+        overflow: TextOverflow.ellipsis,
         style: italicFont,
       ),
       const Text(""),
       Flexible(
-        child: Scrollbar(
-          child: SingleChildScrollView(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(model.he1,
-                    textScaler: const TextScaler.linear(1.75), textDirection: TextDirection.rtl),
-                const Text("   "),
-                Text(
-                  model.eng1,
-                  textScaler: const TextScaler.linear(1.75),
-                  overflow: TextOverflow.clip,
-                  style: lightFont,
-                )
-              ],
-            ),
-          ),
+        child: SingleChildScrollableWithHints(
+          child: relatedWidget(model),
         ),
       ),
-      if (model.he2.isNotEmpty) ...[
-        const Text(""),
-        textLink(model.he2, 1.75, 'https://translate.google.com/?sl=iw&tl=en&text=${model.he2}',
-            color: Colors.black, fontWeight: FontWeight.normal),
-        Text(
-          model.eng2,
-          textScaler: const TextScaler.linear(1.75),
-          overflow: TextOverflow.clip,
-          style: lightFont,
-        ),
-      ]
     ];
+  }
+
+  List<Set<Item>> getRelated(VocabModel model) {
+    var inf = <Item>{};
+    var syn = <Item>{};
+    var root = <Item>{};
+    var phr = <Item>{};
+    var decl = <Item>{};
+
+    for (var kvp in model.related.entries) {
+      var item = kvp.key;
+      if (item.haser.contains(' '))
+        phr.add(item);
+      else if (isVerb(item))
+        inf.add(item);
+      else if (kvp.value && isDecl(item))
+        decl.add(item);
+      else if (kvp.value)
+        root.add(item);
+      else
+        syn.add(item);
+    }
+
+    var secondary = [inf, decl, syn, root, phr];
+    return secondary;
+  }
+
+  bool isVerb(Item item) => item.haser.startsWith('ל') && item.translation.startsWith('to ');
+
+  bool isDecl(Item item) =>
+      item.translation.startsWith('I ') ||
+      item.translation.startsWith('you ') ||
+      item.translation.startsWith('he ') ||
+      item.translation.startsWith('she ') ||
+      item.translation.startsWith('we ') ||
+      item.translation.startsWith('they ');
+
+  Widget relatedWidget(VocabModel model) {
+    var list = getRelated(model);
+
+    var he = <String>[];
+    var eng = <String>[];
+
+    for (var set in list) {
+      if (set.isEmpty) continue;
+
+      var ordered = set.orderBy((item) => item.haser).toList();
+      var he1 = ordered.select((item, _) => item.target).join("\n");
+      var eng1 = ordered.select((item, _) => item.translation).join("\n");
+
+      he.add(he1);
+      eng.add(eng1);
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(he.join("\n\n"),
+            textScaler: const TextScaler.linear(1.75), textDirection: TextDirection.rtl),
+        const Text("   "),
+        Text(
+          eng.join("\n\n"),
+          textScaler: const TextScaler.linear(1.75),
+          overflow: TextOverflow.ellipsis,
+          style: lightFont,
+        )
+      ],
+    );
+
+    // if (model.he2.isNotEmpty) ...[
+    //   const Text(""),
+    //   textLink(model.he2, 1.75, 'https://translate.google.com/?sl=iw&tl=en&text=${model.he2}',
+    //       color: Colors.black, fontWeight: FontWeight.normal),
+    //   Text(
+    //     model.eng2,
+    //     textScaler: const TextScaler.linear(1.75),
+    //     overflow: TextOverflow.clip,
+    //     style: lightFont,
+    //   ),
+    // ]
   }
 
   Widget _buttons(VocabModel model) {
@@ -300,15 +363,20 @@ class VocabView extends ConsumerWidget {
   }
 
   void _menuSelection(int value, BuildContext context, VocabModel model) {
+
+    var s = GetIt.I<ISerializer>();
+
     if (value == 0) model.nextItemForLevel(DataModelSettings.skipLevel);
     if (value == 1) model.nextItemForLevel(DataModelSettings.hideLevel);
     if (value == 2) model.prevItem();
-    if (value == 3) VocabDialogs.resetAllDialog(context, model);
-    if (value == 4) model.nextItemForLevel(DataModelSettings.undoneLevel);
-    if (value == 5) {
+
+    if (value == 3) SourceDialogs.showExported(context, s.export());
+    if (value == 4) VocabDialogs.resetAllDialog(context, model);
+    if (value == 5) model.nextItemForLevel(DataModelSettings.undoneLevel);
+    if (value == 6) {
       model.resetItems(
           (item) => item.level == DataModelSettings.hideLevel, DataModelSettings.undoneLevel);
     }
-    if (value == 6) model.resetItems((item) => true, DataModelSettings.yearIndex + 1);
+    if (value == 7) model.resetItems((item) => true, DataModelSettings.yearIndex + 1);
   }
 }

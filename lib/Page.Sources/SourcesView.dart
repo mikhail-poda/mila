@@ -46,14 +46,8 @@ class SourcesView extends ConsumerWidget {
       child:
           const Padding(padding: EdgeInsets.only(right: 20.0), child: Icon(Icons.menu, size: 26)),
       itemBuilder: (BuildContext context) => [
-        const PopupMenuItem<int>(
-          value: 1,
-          child: Text('Export vocabulary'),
-        ),
-        const PopupMenuItem<int>(
-          value: 2,
-          child: Text('Import vocabulary'),
-        ),
+        const PopupMenuItem<int>(value: 1,child: Text('Export vocabulary')),
+        const PopupMenuItem<int>(value: 2,child: Text('Import vocabulary')),
         const PopupMenuDivider(),
         const PopupMenuItem<int>(value: 3, child: Text('Settings')),
         const PopupMenuItem<int>(value: 4, child: Text('About')),

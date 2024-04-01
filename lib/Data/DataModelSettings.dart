@@ -35,4 +35,16 @@ class DataModelSettings {
   static int calcOffset(int level) {
     return pow(1.67, level).toInt();
   }
+
+  static bool isHidden(int level) => level == hideLevel;
+
+  static bool isUndone(int level) => level == skipLevel || level == undoneLevel;
+
+  static bool isRepeat(int level) => level > undoneLevel && level <= hours3Index;
+
+  static bool isDone(int level) => level > hours3Index && level <= hours60Index;
+
+  static bool isDoneAll(int level) => level > hours60Index;
+
+  static bool isKnown(int level) => isDone(level) || isDoneAll(level);
 }

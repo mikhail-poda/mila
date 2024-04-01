@@ -90,14 +90,9 @@ class VocabModel extends ChangeNotifier {
     return str.replaceAll("; ", repl);
   }
 
-  String get he1 {
-    if (!_isComplete || _current == null) return "";
-    return _current!.extTarget;
-  }
-
-  String get eng1 {
-    if (!_isComplete || _current == null) return "";
-    return _current!.extTranslation;
+  Map<Item, bool> get related {
+    if (!_isComplete || _current == null) return <Item, bool>{};
+    return _current!.related;
   }
 
   String get he2 {

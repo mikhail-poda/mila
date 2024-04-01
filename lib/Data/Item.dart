@@ -1,5 +1,3 @@
-import 'package:darq/darq.dart';
-
 import '../Library/Library.dart';
 import 'DataModelSettings.dart';
 
@@ -31,6 +29,13 @@ class Mapper {
   }
 }
 
+class Secondary {
+  bool isSameRoot;
+  Item item;
+
+  Secondary(this.item, this.isSameRoot);
+}
+
 abstract class IItem {
   late int level;
 
@@ -40,7 +45,7 @@ abstract class IItem {
 }
 
 class Item implements IItem {
-  final Set<Item> _secondary = <Item>{};
+  final related = <Item, bool>{};
 
   late String _id;
   late String _haser;
@@ -83,10 +88,6 @@ class Item implements IItem {
   @override
   String get longTranslation => (_mapper.longTranslation < 0) ? '' : _line[_mapper.longTranslation];
 
-  String get extTarget => _secondary.select((item, _) => item.target).join("\n");
-
-  String get extTranslation => _secondary.select((item, _) => item.translation).join("\n");
-
   Item(this._line, this._mapper) {
     _haser = haserNikud(target);
     _id = _haser + identifier;
@@ -116,32 +117,51 @@ Iterable<Item> fromLines(List<List<String>> lines) sync* {
   }
 }
 
+// words written same (or very similar)
 void addHomonyms(List<Item> items) {
   var map = <String, Set<Item>>{};
 
   for (final item in items) {
-    var set = map[item.haser];
+    var haser = item.haser
+        .replaceAll('א', '1')
+        .replaceAll('ע', '1')
+        .replaceAll('ט', '2')
+        .replaceAll('ת', '2')
+        .replaceAll('כ', '3')
+        .replaceAll('ך', '3')
+        .replaceAll('ח', '3')
+        .replaceAll('ק', '3')
+        .replaceAll('ז', '4')
+        .replaceAll('צ', '4')
+        .replaceAll('ץ', '4')
+        .replaceAll('ש', '5')
+        .replaceAll('ס', '5');
+
+    var set = map[haser];
     if (set == null) {
       set = <Item>{};
-      map[item.haser] = set;
+      map[haser] = set;
     }
     set.add(item);
   }
 
-  // make a list of synonyms for each item
+  // make a list of homonyms for each item
   for (final set in map.values) {
     if (set.length == 1) continue;
     for (final ii in set) {
       for (final jj in set) {
         if (identical(ii, jj)) continue;
-        ii._secondary.add(jj);
-        jj._secondary.add(ii);
+        ii.related[jj] = false;
+        jj.related[ii] = false;
       }
     }
   }
 }
 
 Set<Set<String>> cognateRoots = {
+  {'ת - כ - ן', 'ת - כ - נ - ן', 'ת - כ - נ - ת'},
+  {'ד - מ - ה', 'ד - מ - י - ן'},
+  {'ח - ו - שׁ', 'ח - י - שׁ'},
   {'א - ו - ת', 'א - י - ת'},
   {'ק - ו - ם', 'ק - י - ם'},
   {'ח - ל - ל', 'ת - ח - ל'},
@@ -169,7 +189,9 @@ void addSameRoot(List<Item> items) {
 
     final cell = item.root
         .split(",")
+        .map((s) => s.trim())
         .map((s) => cognate[s] ?? s)
+        .map((s) => _reduce4to3(s))
         .where((s) => s != null && s.isNotEmpty)
         .toList();
 
@@ -199,15 +221,22 @@ void addSameRoot(List<Item> items) {
     }
   }
 
-  // add synonyms to item content
+  // add same root to item content
   for (final entry in syn.entries) {
     var item = entry.key;
     var iset = entry.value;
 
     for (final other in iset) {
-      if (item != other) item._secondary.add(other);
+      if (item != other) item.related[other] = true;
     }
   }
+}
+
+String _reduce4to3(String s) {
+  if (s.length < 12) return s;
+  if (s.startsWith('ת - ')) return s.substring(4);
+  if (s.startsWith('ש - ')) return s.substring(4);
+  return s;
 }
 
 void addSynonyms(List<Item> items) {
@@ -257,7 +286,7 @@ void addSynonyms(List<Item> items) {
     var iset = entry.value;
 
     for (final other in iset) {
-      if (item != other) item._secondary.add(other);
+      if (item != other) item.related[other] = false;
     }
   }
 }
@@ -288,27 +317,17 @@ class Statistics {
   Statistics(List<IItem> list) {
     total = list;
 
-    hidden = list.where((element) => element.level == DataModelSettings.hideLevel).toList();
+    hidden = list.where((element) => DataModelSettings.isHidden(element.level)).toList();
 
-    undone = list
-        .where((element) =>
-            element.level == DataModelSettings.undoneLevel ||
-            element.level == DataModelSettings.skipLevel)
-        .toList();
+    undone = list.where((element) => DataModelSettings.isUndone(element.level)).toList();
 
     // orange
-    repeat = list
-        .where((x) =>
-            x.level > DataModelSettings.undoneLevel && x.level < DataModelSettings.hours3Index)
-        .toList();
+    repeat = list.where((element) => DataModelSettings.isRepeat(element.level)).toList();
 
     // light green - between hour and day
-    done = list
-        .where((x) =>
-            x.level >= DataModelSettings.hours3Index && x.level <= DataModelSettings.hours60Index)
-        .toList();
+    done = list.where((element) => DataModelSettings.isDone(element.level)).toList();
 
     // dark green
-    doneAll = list.where((x) => x.level > DataModelSettings.hours60Index).toList();
+    doneAll = list.where((element) => DataModelSettings.isDoneAll(element.level)).toList();
   }
 }
