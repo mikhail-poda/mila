@@ -1,8 +1,6 @@
 import 'package:darq/darq.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:get_it/get_it.dart';
-import 'package:mila/IO/ISerializer.dart';
 import 'package:mila/Page.Vocabulary/VocabProviders.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -363,20 +361,14 @@ class VocabView extends ConsumerWidget {
   }
 
   void _menuSelection(int value, BuildContext context, VocabModel model) {
-
-    var s = GetIt.I<ISerializer>();
-
     if (value == 0) model.nextItemForLevel(DataModelSettings.skipLevel);
     if (value == 1) model.nextItemForLevel(DataModelSettings.hideLevel);
     if (value == 2) model.prevItem();
 
-    if (value == 3) SourceDialogs.showExported(context, s.export());
-    if (value == 4) VocabDialogs.resetAllDialog(context, model);
+    if (value == 3) SourceDialogs.showExported(context, model.export());
+    if (value == 4) VocabDialogs.resetAllDialog(context, () => model.resetItems((i) => true, DataModelSettings.undoneLevel));
     if (value == 5) model.nextItemForLevel(DataModelSettings.undoneLevel);
-    if (value == 6) {
-      model.resetItems(
-          (item) => item.level == DataModelSettings.hideLevel, DataModelSettings.undoneLevel);
-    }
+    if (value == 6) { model.resetItems( (item) => item.level == DataModelSettings.hideLevel, DataModelSettings.undoneLevel); }
     if (value == 7) model.resetItems((item) => true, DataModelSettings.yearIndex + 1);
   }
 }

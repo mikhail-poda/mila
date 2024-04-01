@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import '../Constants.dart';
 import '../IO/ISerializer.dart';
 import '../Library/Widgets.dart';
+import '../Page.Vocabulary/VocabDialogs.dart';
 import '../Page.Vocabulary/VocabProviders.dart';
 import '../Page.Vocabulary/VocabView.dart';
 import '../main.dart';
@@ -48,9 +49,10 @@ class SourcesView extends ConsumerWidget {
       itemBuilder: (BuildContext context) => [
         const PopupMenuItem<int>(value: 1,child: Text('Export vocabulary')),
         const PopupMenuItem<int>(value: 2,child: Text('Import vocabulary')),
+        const PopupMenuItem<int>(value: 3,child: Text('Reset all items')),
         const PopupMenuDivider(),
-        const PopupMenuItem<int>(value: 3, child: Text('Settings')),
-        const PopupMenuItem<int>(value: 4, child: Text('About')),
+        const PopupMenuItem<int>(value: 4, child: Text('Settings')),
+        const PopupMenuItem<int>(value: 5, child: Text('About')),
       ],
     );
   }
@@ -60,11 +62,12 @@ class SourcesView extends ConsumerWidget {
 
     if (value == 1) SourceDialogs.showExported(context, s.export());
     if (value == 2) SourceDialogs.showImported(context, s.import());
-    if (value == 3) {
+    if (value == 3) VocabDialogs.resetAllDialog(context, () => s.reset());
+    if (value == 4) {
       SourceDialogs.settingsDialog(context, s);
       ref.invalidate(vocabModelProvider);
     }
-    if (value == 4) SourceDialogs.aboutDialog(context);
+    if (value == 5) SourceDialogs.aboutDialog(context);
   }
 
   Widget _body(BuildContext context, WidgetRef ref, List<String> list) {

@@ -7,6 +7,7 @@ import '../Data/AbstractDataModel.dart';
 import '../Data/DataModelSettings.dart';
 import '../Data/RandomDataModel.dart';
 import '../Data/SequentialDataModel.dart';
+import '../IO/HiveSerializer.dart';
 import '../IO/ISerializer.dart';
 import '../IO/Settings.dart';
 import '../Data/Item.dart';
@@ -205,5 +206,21 @@ class VocabModel extends ChangeNotifier {
       _serializer.push(item!);
     }
     notifyListeners();
+  }
+
+  int export() {
+    final lines = asLines();
+    return exportLines(lines);
+  }
+
+  List<String> asLines() {
+    var buf = <String>['identifier\ttarget\ttranslation\tlevel\tlast_use\tphonetic'];
+
+    for (var item in _model) {
+      var lastUse = HiveSerializer.formatter.format(item.lastUse);
+      buf.add('${item.identifier}\t${item.target}\t${item.translation}\t${item.level}\t${lastUse}\t${item.phonetic}');
+    }
+
+    return buf;
   }
 }

@@ -7,7 +7,7 @@ const lightFont = TextStyle(fontWeight: FontWeight.w300);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
 
 class VocabDialogs {
-  static resetAllDialog(BuildContext context, VocabModel model) async {
+  static resetAllDialog(BuildContext context, void Function() func) async {
     bool result = await showDialog(
       context: context,
       builder: (context) {
@@ -34,6 +34,6 @@ class VocabDialogs {
       },
     );
 
-    if (result) model.resetItems((i) => true, DataModelSettings.undoneLevel);
+    if (result) func();
   }
 }

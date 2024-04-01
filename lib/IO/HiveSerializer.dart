@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'dart:html';
 import 'package:darq/darq.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -17,7 +16,7 @@ import 'ISerializer.dart';
 import 'SerialItem.dart';
 
 class HiveSerializer implements ISerializer {
-  final _formatter = DateFormat('yyyy.MM.dd hh:mm:ss');
+  static final formatter = DateFormat('yyyy.MM.dd hh:mm:ss');
 
   static late Box<SerialItem> _itemsBox;
   static late Box<Settings> _settingsBox;
@@ -64,7 +63,7 @@ class HiveSerializer implements ISerializer {
     var buf = <String>['identifier\ttarget\ttranslation\tlevel\tlast_use\tphonetic'];
 
     for (var obj in _itemsBox.values) {
-      var lastUse = _formatter.format(obj.lastUse);
+      var lastUse = formatter.format(obj.lastUse);
       buf.add('${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t${lastUse}\t${obj.phonetic}');
     }
 
@@ -74,19 +73,7 @@ class HiveSerializer implements ISerializer {
   @override
   int export() {
     final lines = asLines();
-    final text = lines.join('\n');
-
-    if (kIsWeb) {
-      final bytes = utf8.encode(text);
-      final content = base64Encode(bytes);
-
-      AnchorElement(href: "data:application/octet-stream;charset=utf-16le;base64,$content")
-        ..setAttribute("download", "file.txt")
-        ..click();
-
-      return lines.length;
-    }
-    return 0;
+    return exportLines(lines);
   }
 
   @override
@@ -124,7 +111,7 @@ class HiveSerializer implements ISerializer {
 
       var translation = cell[mapper.translation];
       var level = int.parse(cell[mapper.level]);
-      var lastUse = _formatter.parse(cell[mapper.lastUse]);
+      var lastUse = formatter.parse(cell[mapper.lastUse]);
       var identifier = mapper.identifier < 0 ? '' : cell[mapper.identifier];
       var phonetic = mapper.phonetic < 0 ? '' : cell[mapper.phonetic];
 
@@ -160,6 +147,11 @@ class HiveSerializer implements ISerializer {
     }
 
     return list.length;
+  }
+
+  @override
+  void reset() {
+    _itemsBox.clear();
   }
 }
 

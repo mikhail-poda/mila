@@ -13,6 +13,8 @@ abstract class ISerializer {
 
   void sync(List<Item> items);
 
+  void reset();
+
   int export();
 
   Future<int> import();
