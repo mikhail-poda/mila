@@ -215,7 +215,7 @@ class VocabView extends ConsumerWidget {
               textDirection: TextDirection.rtl,
               overflow: TextOverflow.ellipsis,
             )),
-      const Text("_______________________________________",
+      const Text("--------------------------------------------",
           style: TextStyle(color: Colors.black26)),
       (model.guessMode == GuessMode.eng
           ? Text(model.he0,
@@ -243,7 +243,7 @@ class VocabView extends ConsumerWidget {
     ];
   }
 
-  List<Set<Item>> getRelated(VocabModel model) {
+  (List<Set<Item>>, Set<Item>) getRelated(VocabModel model) {
     var inf = <Item>{};
     var syn = <Item>{};
     var root = <Item>{};
@@ -264,8 +264,8 @@ class VocabView extends ConsumerWidget {
         syn.add(item);
     }
 
-    var secondary = [inf, decl, syn, root, phr];
-    return secondary;
+    var secondary = [inf, decl, syn, root];
+    return (secondary, phr);
   }
 
   bool isVerb(Item item) => item.haser.startsWith('ל') && item.translation.startsWith('to ');
@@ -279,7 +279,7 @@ class VocabView extends ConsumerWidget {
       item.translation.startsWith('they ');
 
   Widget relatedWidget(VocabModel model) {
-    var list = getRelated(model);
+    var (list, phr) = getRelated(model);
 
     var he = <String>[];
     var eng = <String>[];
@@ -287,40 +287,54 @@ class VocabView extends ConsumerWidget {
     for (var set in list) {
       if (set.isEmpty) continue;
 
-      var ordered = set.orderBy((item) => item.haser).toList();
-      var he1 = ordered.select((item, _) => item.target).join("\n");
-      var eng1 = ordered.select((item, _) => item.translation).join("\n");
+      var (he1, eng1) = _heEng(set);
 
       he.add(he1);
       eng.add(eng1);
     }
 
-    return Row(
+    var row1 = _heEngRow(he.join("\n\n"), eng.join("\n\n"));
+    if (phr.isEmpty) return row1;
+
+    var (he2, eng2) = _heEng(phr);
+    var row2 = _heEngRow(he2, eng2);
+
+    if (list.isEmpty) return row2;
+
+    return Column(
+      children: [
+        row1,
+        const Text("", textScaler: TextScaler.linear(0.5)),
+        const Text("--------------------------------------------",
+            style: TextStyle(color: Colors.black26)),
+        const Text("", textScaler: TextScaler.linear(0.5)),
+        row2
+      ],
+    );
+  }
+
+  Row _heEngRow(String he2, String eng2) {
+    var row2 = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(he.join("\n\n"),
-            textScaler: const TextScaler.linear(1.75), textDirection: TextDirection.rtl),
+        Text(he2, textScaler: const TextScaler.linear(1.75), textDirection: TextDirection.rtl),
         const Text("   "),
         Text(
-          eng.join("\n\n"),
+          eng2,
           textScaler: const TextScaler.linear(1.75),
           overflow: TextOverflow.ellipsis,
           style: lightFont,
         )
       ],
     );
+    return row2;
+  }
 
-    // if (model.he2.isNotEmpty) ...[
-    //   const Text(""),
-    //   textLink(model.he2, 1.75, 'https://translate.google.com/?sl=iw&tl=en&text=${model.he2}',
-    //       color: Colors.black, fontWeight: FontWeight.normal),
-    //   Text(
-    //     model.eng2,
-    //     textScaler: const TextScaler.linear(1.75),
-    //     overflow: TextOverflow.clip,
-    //     style: lightFont,
-    //   ),
-    // ]
+  (String, String) _heEng(Set<Item> set) {
+    var ordered = set.orderBy((item) => item.haser).toList();
+    var he = ordered.select((item, _) => item.target).join("\n");
+    var eng = ordered.select((item, _) => item.translation).join("\n");
+    return (he, eng);
   }
 
   Widget _buttons(VocabModel model) {
@@ -366,9 +380,14 @@ class VocabView extends ConsumerWidget {
     if (value == 2) model.prevItem();
 
     if (value == 3) SourceDialogs.showExported(context, model.export());
-    if (value == 4) VocabDialogs.resetAllDialog(context, () => model.resetItems((i) => true, DataModelSettings.undoneLevel));
+    if (value == 4)
+      VocabDialogs.resetAllDialog(
+          context, () => model.resetItems((i) => true, DataModelSettings.undoneLevel));
     if (value == 5) model.nextItemForLevel(DataModelSettings.undoneLevel);
-    if (value == 6) { model.resetItems( (item) => item.level == DataModelSettings.hideLevel, DataModelSettings.undoneLevel); }
+    if (value == 6) {
+      model.resetItems(
+          (item) => item.level == DataModelSettings.hideLevel, DataModelSettings.undoneLevel);
+    }
     if (value == 7) model.resetItems((item) => true, DataModelSettings.yearIndex + 1);
   }
 }

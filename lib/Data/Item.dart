@@ -127,15 +127,10 @@ void addHomonyms(List<Item> items) {
         .replaceAll('ע', '1')
         .replaceAll('ט', '2')
         .replaceAll('ת', '2')
-        .replaceAll('כ', '3')
-        .replaceAll('ך', '3')
         .replaceAll('ח', '3')
-        .replaceAll('ק', '3')
-        .replaceAll('ז', '4')
-        .replaceAll('צ', '4')
-        .replaceAll('ץ', '4')
-        .replaceAll('ש', '5')
-        .replaceAll('ס', '5');
+        .replaceAll('ה', '3')
+        .replaceAll('כ', '3')
+        .replaceAll('ך', '3');
 
     var set = map[haser];
     if (set == null) {
