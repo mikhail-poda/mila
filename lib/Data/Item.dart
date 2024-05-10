@@ -117,42 +117,6 @@ Iterable<Item> fromLines(List<List<String>> lines) sync* {
   }
 }
 
-// words written same (or very similar)
-void addHomonyms(List<Item> items) {
-  var map = <String, Set<Item>>{};
-
-  for (final item in items) {
-    var haser = item.haser
-        .replaceAll('א', '1')
-        .replaceAll('ע', '1')
-        .replaceAll('ט', '2')
-        .replaceAll('ת', '2')
-        .replaceAll('ח', '3')
-        .replaceAll('ה', '3')
-        .replaceAll('כ', '3')
-        .replaceAll('ך', '3');
-
-    var set = map[haser];
-    if (set == null) {
-      set = <Item>{};
-      map[haser] = set;
-    }
-    set.add(item);
-  }
-
-  // make a list of homonyms for each item
-  for (final set in map.values) {
-    if (set.length == 1) continue;
-    for (final ii in set) {
-      for (final jj in set) {
-        if (identical(ii, jj)) continue;
-        ii.related[jj] = false;
-        jj.related[ii] = false;
-      }
-    }
-  }
-}
-
 Set<Set<String>> cognateRoots = {
   {'ת - כ - ן', 'ת - כ - נ - ן', 'ת - כ - נ - ת'},
   {'ד - מ - ה', 'ד - מ - י - ן'},

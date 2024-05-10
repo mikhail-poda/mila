@@ -20,6 +20,9 @@ const lightFont = TextStyle(fontWeight: FontWeight.w300);
 const italicFont = TextStyle(fontWeight: FontWeight.w300, fontStyle: FontStyle.italic);
 const boldFont = TextStyle(fontWeight: FontWeight.bold);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
+const grayFont = TextStyle(color: Colors.black26, fontWeight: FontWeight.w300);
+
+var conjugationComparer = EqualityComparer<String>(sorter: conjugationSorter);
 
 class VocabView extends ConsumerWidget {
   const VocabView({Key? key}) : super(key: key);
@@ -112,26 +115,10 @@ class VocabView extends ConsumerWidget {
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                statisticsRow(context, stat),
-                Text(
-                  model.message,
-                  textScaler: const TextScaler.linear(4),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black12),
-                )
-              ],
-            ),
-            Expanded(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: _content(model),
-            )),
+            statisticsRow(context, stat),
+            Expanded(child: _content(model)),
             model.isComplete ? linksRow(model) : const Text("")
           ],
         ));
@@ -169,6 +156,7 @@ class VocabView extends ConsumerWidget {
     //     mainAxisAlignment: MainAxisAlignment.spaceAround,
     //     children: widgets,
     //   ),
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -198,122 +186,110 @@ class VocabView extends ConsumerWidget {
             style: TextStyle(color: color, fontWeight: fontWeight)));
   }
 
-  List<Widget> _content(VocabModel model) {
+  Widget _content(VocabModel model) {
     var heScale = model.he0.length < 12 ? 2.25 : 2.0;
 
-    return <Widget>[
-      (model.guessMode == GuessMode.eng
-          ? Text(
-              model.eng0,
-              textScaler: const TextScaler.linear(2),
-              style: lightFont,
-            )
-          : Text(
-              model.he0,
-              textScaler: TextScaler.linear(heScale),
-              style: boldFont,
-              textDirection: TextDirection.rtl,
-              overflow: TextOverflow.ellipsis,
-            )),
-      const Text("--------------------------------------------",
-          style: TextStyle(color: Colors.black26)),
-      (model.guessMode == GuessMode.eng
-          ? Text(model.he0,
-              textScaler: TextScaler.linear(heScale),
-              style: boldFont,
-              textDirection: TextDirection.rtl)
-          : Text(
-              model.eng0,
-              textScaler: const TextScaler.linear(2),
-              overflow: TextOverflow.ellipsis,
-              style: lightFont,
-            )),
-      Text(
-        model.phonetic,
-        textScaler: const TextScaler.linear(1.75),
-        overflow: TextOverflow.ellipsis,
-        style: italicFont,
-      ),
-      const Text(""),
-      Flexible(
+    return Flexible(
         child: SingleChildScrollableWithHints(
-          child: relatedWidget(model),
-        ),
-      ),
-    ];
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+          Text(
+            model.message,
+            textScaler: const TextScaler.linear(4),
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.black12),
+          ),
+          (model.guessMode == GuessMode.eng
+              ? Text(
+                  model.eng0,
+                  textScaler: const TextScaler.linear(2),
+                  style: lightFont,
+                )
+              : Text(
+                  model.he0,
+                  textScaler: TextScaler.linear(heScale),
+                  style: boldFont,
+                  textDirection: TextDirection.rtl,
+                  overflow: TextOverflow.ellipsis,
+                )),
+          (model.guessMode == GuessMode.eng
+              ? Text(model.he0,
+                  textScaler: TextScaler.linear(heScale),
+                  style: boldFont,
+                  textDirection: TextDirection.rtl)
+              : Text(
+                  model.eng0,
+                  textScaler: const TextScaler.linear(2),
+                  overflow: TextOverflow.ellipsis,
+                  style: lightFont,
+                )),
+          Text(
+            model.phonetic,
+            textScaler: const TextScaler.linear(1.75),
+            overflow: TextOverflow.ellipsis,
+            style: italicFont,
+          ),
+          ...relatedWidgets(model),
+        ])));
   }
 
-  (List<Set<Item>>, Set<Item>) getRelated(VocabModel model) {
-    var inf = <Item>{};
+  List<Set<Item>> getRelated(VocabModel model) {
+    var verb = <Item>{};
     var syn = <Item>{};
     var root = <Item>{};
     var phr = <Item>{};
-    var decl = <Item>{};
+    var conj = <Item>{};
 
     for (var kvp in model.related.entries) {
       var item = kvp.key;
+      var isSameRoot = kvp.value;
+
       if (item.haser.contains(' '))
         phr.add(item);
       else if (isVerb(item))
-        inf.add(item);
-      else if (kvp.value && isDecl(item))
-        decl.add(item);
-      else if (kvp.value)
+        verb.add(item);
+      else if (isSameRoot && isConjugation(item.translation))
+        conj.add(item);
+      else if (isSameRoot)
         root.add(item);
       else
         syn.add(item);
     }
 
-    var secondary = [inf, decl, syn, root];
-    return (secondary, phr);
+    var secondary = [verb, conj, syn, root, phr];
+    return secondary;
   }
+
+  bool isConjugation(String str) => getConjugationOrder(str) > 0;
 
   bool isVerb(Item item) => item.haser.startsWith('ל') && item.translation.startsWith('to ');
 
-  bool isDecl(Item item) =>
-      item.translation.startsWith('I ') ||
-      item.translation.startsWith('you ') ||
-      item.translation.startsWith('he ') ||
-      item.translation.startsWith('she ') ||
-      item.translation.startsWith('we ') ||
-      item.translation.startsWith('they ');
+  List<Widget> relatedWidgets(VocabModel model) {
+    var list = getRelated(model);
+    var headers = ['verbs', 'conjugation', 'synonyms', 'same root', 'phrase'];
 
-  Widget relatedWidget(VocabModel model) {
-    var (list, phr) = getRelated(model);
-
-    var he = <String>[];
-    var eng = <String>[];
-
-    for (var set in list) {
-      if (set.isEmpty) continue;
-
-      var (he1, eng1) = _heEng(set);
-
-      he.add(he1);
-      eng.add(eng1);
-    }
-
-    var row1 = _heEngRow(he.join("\n\n"), eng.join("\n\n"));
-    if (phr.isEmpty) return row1;
-
-    var (he2, eng2) = _heEng(phr);
-    var row2 = _heEngRow(he2, eng2);
-
-    if (list.isEmpty) return row2;
-
-    return Column(
-      children: [
-        row1,
-        const Text("", textScaler: TextScaler.linear(0.5)),
-        const Text("--------------------------------------------",
-            style: TextStyle(color: Colors.black26)),
-        const Text("", textScaler: TextScaler.linear(0.5)),
-        row2
-      ],
-    );
+    return list
+        .zip(headers, (l, h) => makeWidget(l, h))
+        .where((element) => element != null)
+        .cast<Widget>()
+        .toList();
   }
 
-  Row _heEngRow(String he2, String eng2) {
+  Widget? makeWidget(Set<Item> set, String header) {
+    if (set.isEmpty) return null;
+    var (he, eng) = _heEng(header, set);
+    return _heEngRow(header, he, eng);
+  }
+
+  Widget _heEngRow(String header, String he2, String eng2) {
+    var row0 = const Text('');
+    var row1 = Text(
+      '      $header  -------------------------',
+      style: grayFont,
+      textScaler: const TextScaler.linear(1.50),
+    );
     var row2 = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -327,11 +303,19 @@ class VocabView extends ConsumerWidget {
         )
       ],
     );
-    return row2;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [row0, row1, row2],
+    );
   }
 
-  (String, String) _heEng(Set<Item> set) {
-    var ordered = set.orderBy((item) => item.haser).toList();
+  (String, String) _heEng(String header, Set<Item> set) {
+    var ordered = header == 'conjugation'
+        ? set.orderBy<String>((item) => item.translation, keyComparer: conjugationComparer).toList()
+        : set.orderBy((item) => item.haser).toList();
+
     var he = ordered.select((item, _) => item.target).join("\n");
     var eng = ordered.select((item, _) => item.translation).join("\n");
     return (he, eng);
@@ -391,3 +375,20 @@ class VocabView extends ConsumerWidget {
     if (value == 7) model.resetItems((item) => true, DataModelSettings.yearIndex + 1);
   }
 }
+
+int conjugationSorter(String left, String right) =>
+    getConjugationOrder(left) - getConjugationOrder(right);
+
+int getConjugationOrder(String str) => str.startsWith('I ')
+    ? 1
+    : str.startsWith('you ')
+        ? 2
+        : str.startsWith('he ')
+            ? 3
+            : str.startsWith('she ')
+                ? 4
+                : str.startsWith('we ')
+                    ? 5
+                    : str.startsWith('they ')
+                        ? 6
+                        : 0;

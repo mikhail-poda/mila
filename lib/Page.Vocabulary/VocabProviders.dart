@@ -33,9 +33,8 @@ Future<ModelOrError> _getVocabModel(String sourceName) async {
   final err = SourceError.any(sourceName, items);
   if (err != null) return ModelOrError.error(err);
 
-  addSameRoot(items);
   addSynonyms(items);
-  addHomonyms(items);
+  addSameRoot(items);
 
   final serializer = GetIt.I<ISerializer>();
   final model = VocabModel(sourceName, items, serializer);
