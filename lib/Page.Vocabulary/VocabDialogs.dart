@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../Data/DataModelSettings.dart';
-import 'VocabModel.dart';
 
 const lightFont = TextStyle(fontWeight: FontWeight.w300);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);

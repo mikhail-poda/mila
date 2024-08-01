@@ -203,7 +203,7 @@ class VocabModel extends ChangeNotifier {
   void resetItems(bool Function(Item) func, int level) {
     var items = _model.resetItems(func, level);
     for (var item in items) {
-      _serializer.push(item!);
+      _serializer.push(item);
     }
     notifyListeners();
   }
@@ -218,7 +218,7 @@ class VocabModel extends ChangeNotifier {
 
     for (var item in _model) {
       var lastUse = HiveSerializer.formatter.format(item.lastUse);
-      buf.add('${item.identifier}\t${item.target}\t${item.translation}\t${item.level}\t${lastUse}\t${item.phonetic}');
+      buf.add('${item.identifier}\t${item.target}\t${item.translation}\t${item.level}\t$lastUse\t${item.phonetic}');
     }
 
     return buf;

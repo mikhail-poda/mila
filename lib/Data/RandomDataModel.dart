@@ -10,7 +10,7 @@ class RandomDataModel extends AbstractDataModel {
   final _waitQueue = Queue<Item>();
   final _random = Random();
 
-  RandomDataModel(List<Item> items) : super(items);
+  RandomDataModel(super.items);
 
   @override
   String get message {
@@ -34,8 +34,7 @@ class RandomDataModel extends AbstractDataModel {
     var now = DateTime.now();
     var hset = HashSet.of(_waitQueue);
 
-    var items = this
-        .where((item) => !hset.contains(item))
+    var items = where((item) => !hset.contains(item))
         .where((item) => item.level >= DataModelSettings.undoneLevel)
         .where((item) => item.level <= DataModelSettings.yearIndex)
         .where((item) => item.level == DataModelSettings.undoneLevel || item.nextUse.isBefore(now))

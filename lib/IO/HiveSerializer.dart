@@ -64,7 +64,7 @@ class HiveSerializer implements ISerializer {
 
     for (var obj in _itemsBox.values) {
       var lastUse = formatter.format(obj.lastUse);
-      buf.add('${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t${lastUse}\t${obj.phonetic}');
+      buf.add('${obj.identifier}\t${obj.target}\t${obj.translation}\t${obj.level}\t$lastUse\t${obj.phonetic}');
     }
 
     return buf;

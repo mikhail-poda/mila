@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../Constants.dart';
 import '../IO/ISerializer.dart';
-import '../IO/Settings.dart';
 
 const lightFont = TextStyle(fontWeight: FontWeight.w300);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
@@ -107,7 +106,7 @@ class SourceDialogs {
           return Dialog(
               child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Text("Exported ${num} vocables"),
+            child: Text("Exported $num vocables"),
           ));
         });
   }

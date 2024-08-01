@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:hive/hive.dart';
 
@@ -40,7 +39,7 @@ class SerialItem implements IItem {
 
   DateTime get nextUse {
     var offset = DataModelSettings.calcOffset(level);
-    var next = lastUse!.add(Duration(minutes: offset));
+    var next = lastUse.add(Duration(minutes: offset));
     return next;
   }
 }

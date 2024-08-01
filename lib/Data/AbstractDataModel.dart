@@ -70,14 +70,14 @@ abstract class AbstractDataModel with IterableMixin<Item> {
     if (fromLevel <= DataModelSettings.hours60Index) {
       return switch (skill) {
         Skill.again => fromLevel - 4,
-        Skill.good => fromLevel - 2,
+        Skill.good => fromLevel - 1,
         Skill.easy => fromLevel + 2,
       };
     }
 
     return switch (skill) {
       Skill.again => fromLevel - 6,
-      Skill.good => fromLevel - 3,
+      Skill.good => fromLevel - 2,
       Skill.easy => fromLevel + 1,
     };
   }

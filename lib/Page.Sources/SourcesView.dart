@@ -13,7 +13,7 @@ import 'SourceDialogs.dart';
 import 'SourcesProviders.dart';
 
 class SourcesView extends ConsumerWidget {
-  const SourcesView({Key? key}) : super(key: key);
+  const SourcesView({super.key});
 
   @override
   Widget build(context, ref) {

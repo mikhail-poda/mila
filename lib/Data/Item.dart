@@ -96,7 +96,7 @@ class Item implements IItem {
 
   DateTime get nextUse {
     var offset = DataModelSettings.calcOffset(level);
-    var next = lastUse!.add(Duration(minutes: offset));
+    var next = lastUse.add(Duration(minutes: offset));
     return next;
   }
 }
@@ -151,11 +151,10 @@ void addSameRoot(List<Item> items) {
         .map((s) => s.trim())
         .map((s) => cognate[s] ?? s)
         .map((s) => _reduce4to3(s))
-        .where((s) => s != null && s.isNotEmpty)
+        .where((s) => s.isNotEmpty)
         .toList();
 
     for (final str in cell) {
-      if (str == null) continue;
       var set = map[str];
       if (set == null) {
         set = <Item>{};

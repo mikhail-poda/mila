@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class SingleChildScrollableWithHints extends StatefulWidget {
   final Widget child;
 
-  const SingleChildScrollableWithHints({Key? key, required this.child}) : super(key: key);
+  const SingleChildScrollableWithHints({super.key, required this.child});
 
   @override
   _MyScrollableWidgetState createState() => _MyScrollableWidgetState();

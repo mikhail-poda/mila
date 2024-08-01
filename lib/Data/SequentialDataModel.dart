@@ -5,7 +5,7 @@ import 'Item.dart';
 class SequentialDataModel extends AbstractDataModel {
   int _index = 0;
 
-  SequentialDataModel(List<Item> items) : super(items);
+  SequentialDataModel(super.items);
 
   @override
   String get message => "${1 + ((_index - 1) % length)} / $length";

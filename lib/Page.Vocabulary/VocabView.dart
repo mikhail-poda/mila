@@ -20,12 +20,12 @@ const lightFont = TextStyle(fontWeight: FontWeight.w300);
 const italicFont = TextStyle(fontWeight: FontWeight.w300, fontStyle: FontStyle.italic);
 const boldFont = TextStyle(fontWeight: FontWeight.bold);
 const linkFont = TextStyle(color: Colors.indigoAccent, fontWeight: FontWeight.w300);
-const grayFont = TextStyle(color: Colors.black26, fontWeight: FontWeight.w300);
+const grayFont = TextStyle(color: Colors.black38, fontWeight: FontWeight.w300);
 
 var conjugationComparer = EqualityComparer<String>(sorter: conjugationSorter);
 
 class VocabView extends ConsumerWidget {
-  const VocabView({Key? key}) : super(key: key);
+  const VocabView({super.key});
 
   @override
   Widget build(context, ref) {
@@ -246,9 +246,9 @@ class VocabView extends ConsumerWidget {
       var item = kvp.key;
       var isSameRoot = kvp.value;
 
-      if (item.haser.contains(' '))
+      if (item.haser.contains(' ')) {
         phr.add(item);
-      else if (isVerb(item))
+      } else if (isVerb(item))
         verb.add(item);
       else if (isSameRoot && isConjugation(item.translation))
         conj.add(item);
@@ -258,7 +258,7 @@ class VocabView extends ConsumerWidget {
         syn.add(item);
     }
 
-    var secondary = [verb, conj, syn, root, phr];
+    var secondary = [syn, verb, conj, root, phr];
     return secondary;
   }
 
@@ -268,7 +268,7 @@ class VocabView extends ConsumerWidget {
 
   List<Widget> relatedWidgets(VocabModel model) {
     var list = getRelated(model);
-    var headers = ['verbs', 'conjugation', 'synonyms', 'same root', 'phrase'];
+    var headers = ['synonyms', 'verbs', 'conjugation', 'same root', 'phrase'];
 
     return list
         .zip(headers, (l, h) => makeWidget(l, h))
@@ -364,9 +364,10 @@ class VocabView extends ConsumerWidget {
     if (value == 2) model.prevItem();
 
     if (value == 3) SourceDialogs.showExported(context, model.export());
-    if (value == 4)
+    if (value == 4) {
       VocabDialogs.resetAllDialog(
           context, () => model.resetItems((i) => true, DataModelSettings.undoneLevel));
+    }
     if (value == 5) model.nextItemForLevel(DataModelSettings.undoneLevel);
     if (value == 6) {
       model.resetItems(
@@ -387,8 +388,10 @@ int getConjugationOrder(String str) => str.startsWith('I ')
             ? 3
             : str.startsWith('she ')
                 ? 4
-                : str.startsWith('we ')
+                : str.startsWith('it ')
                     ? 5
-                    : str.startsWith('they ')
+                    : str.startsWith('we ')
                         ? 6
-                        : 0;
+                        : str.startsWith('they ')
+                            ? 7
+                            : 0;
