@@ -72,7 +72,7 @@ class VocabView extends ConsumerWidget {
     if (!model.hasItem) {
       return Scaffold(
           appBar: AppBar(
-              title: Text('${model.sourceName} 〈${model.length}〉'),
+              title: Text('${model.sourceName} • ${model.length}'),
               actions: <Widget>[
                 _menu(context, model),
               ]),
@@ -401,8 +401,9 @@ class VocabView extends ConsumerWidget {
       model.resetItems((item) => item.level == DataModelSettings.hideLevel,
           DataModelSettings.undoneLevel);
     }
-    if (value == 7)
+    if (value == 7) {
       model.resetItems((item) => true, DataModelSettings.yearIndex + 1);
+    }
   }
 }
 
